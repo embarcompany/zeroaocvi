@@ -1,31 +1,18 @@
-const modules = [
-  ["1", "Fundamentos da atuação", true],
-  ["2", "PETC, AVIH e AVI", false],
-  ["3", "Exigências e fontes oficiais", false],
-  ["4", "Planejamento sanitário", false],
-  ["5", "Documentação e CVI", false],
-  ["6", "Embarque e orientação ao tutor", false],
-];
+"use client";
+import { useState } from "react";
+
+const items = ["Passageiro pet confirmado", "Caixa ou bolsa de transporte adequada", "Reserva do pet confirmada", "Documentação conferida", "Identificação e contatos atualizados"];
+const sourceLinks = ["MAPA", "Autoridade veterinária do destino", "Companhia aérea"];
 
 export default function Home() {
-  return <main className="reader">
-    <header className="reader-header"><a className="brand" href="#top"><span>e</span>embarpet</a><p>DO ZERO AO CVI · APOSTILA DIGITAL</p><button type="button">Baixar módulo em PDF</button></header>
-    <div className="reader-layout" id="top">
-      <aside className="sidebar"><p className="side-label">SUMÁRIO</p><a className="intro-link" href="#conteudo">Como usar esta apostila</a>{modules.map(([n,title,active]) => <a className={`module-link ${active ? "active" : ""}`} href={active ? "#conteudo" : "#"} key={n}><b>{n}</b><span>{title}</span></a>)}<div className="sidebar-note"><b>Ferramentas práticas</b><a href="#">Checklist Passageiro Pet</a><a href="#">Cronograma sanitário</a></div></aside>
-      <article className="lesson" id="conteudo">
-        <div className="lesson-meta"><span>MÓDULO 1</span><span>Fundamentos da atuação</span></div>
-        <h1>Como pensar um processo internacional antes de emitir qualquer documento.</h1>
-        <p className="lesson-lead">O Certificado Veterinário Internacional (CVI) é uma etapa do processo — não o processo inteiro. A atuação segura começa entendendo destino, rota, modalidade de transporte, prazos e responsabilidades.</p>
-        <section className="objective"><p>AO FINAL DESTE MÓDULO, VOCÊ VAI</p><ul><li>Compreender a sequência lógica de um processo internacional.</li><li>Diferenciar fonte oficial, exigência operacional e orientação clínica.</li><li>Reconhecer por que o planejamento deve acontecer antes da documentação.</li></ul></section>
-        <h2>O raciocínio vem antes do documento</h2>
-        <p>Em transporte internacional pet, cada caso precisa ser analisado como uma combinação de destino, rota, animal, prazo disponível e modalidade de viagem. Não existe uma resposta única que sirva para todos os embarques.</p>
-        <p>O papel do profissional é transformar informações dispersas em um plano claro, viável e cuidadoso para o animal e para a família.</p>
-        <div className="method"><p>FLUXO DE TRABALHO EMBARPET</p><ol><li>Entender destino e rota.</li><li>Consultar as fontes oficiais vigentes.</li><li>Organizar exigências, prazos e dependências.</li><li>Conferir documentos e emitir o CVI no momento correto.</li><li>Orientar a preparação e o embarque.</li></ol></div>
-        <h2>O que sempre precisa ser confirmado</h2>
-        <p>Antes de orientar um caso real, confirme as exigências junto ao MAPA, à autoridade veterinária do destino e à companhia aérea. Regras sanitárias e operacionais podem mudar e devem ser avaliadas para cada viagem.</p>
-        <div className="warning"><b>Atenção</b><p>Esta apostila ensina o método de análise e organização. Ela não substitui a consulta às fontes vigentes nem a responsabilidade técnica do profissional responsável.</p></div>
-        <footer className="lesson-footer"><span>Próximo módulo</span><a href="#">PETC, AVIH e AVI →</a></footer>
-      </article>
-    </div>
-  </main>;
+  const [view, setView] = useState<"fundamentos" | "modalidades" | "checklist" | "fontes">("fundamentos");
+  const [checks, setChecks] = useState<boolean[]>(items.map(() => false));
+  const select = (next: typeof view) => () => setView(next);
+  const title = view === "fundamentos" ? "Fundamentos da atuação" : view === "modalidades" ? "PETC, AVIH e AVI" : view === "checklist" ? "Checklist Passageiro Pet" : "Fontes oficiais";
+  return <main className="reader"><header className="reader-header"><a className="brand" href="#top"><span>e</span>embarpet</a><p>DO ZERO AO CVI · APOSTILA DIGITAL</p><button type="button" onClick={() => window.print()}>Baixar em PDF</button></header><div className="reader-layout" id="top"><aside className="sidebar"><p className="side-label">SUMÁRIO</p><button className={view === "fundamentos" ? "nav-item active" : "nav-item"} onClick={select("fundamentos")}>1 <span>Fundamentos da atuação</span></button><button className={view === "modalidades" ? "nav-item active" : "nav-item"} onClick={select("modalidades")}>2 <span>PETC, AVIH e AVI</span></button><button className={view === "fontes" ? "nav-item active" : "nav-item"} onClick={select("fontes")}>3 <span>Exigências e fontes oficiais</span></button><div className="sidebar-note"><b>Ferramentas práticas</b><button onClick={select("checklist")}>Checklist Passageiro Pet</button><button disabled>Cronograma sanitário</button></div></aside><article className="lesson"><div className="lesson-meta"><span>{view === "checklist" ? "FERRAMENTA PRÁTICA" : "MÓDULO"}</span><span>{title}</span></div>{view === "fundamentos" && <Fundamentos />}{view === "modalidades" && <Modalidades />}{view === "fontes" && <Fontes />}{view === "checklist" && <Checklist checks={checks} setChecks={setChecks} />}</article></div></main>;
 }
+function Fundamentos(){return <><h1>Como pensar um processo internacional antes de emitir qualquer documento.</h1><p className="lesson-lead">O CVI é uma etapa do processo — não o processo inteiro. A atuação segura começa entendendo destino, rota, modalidade de transporte, prazos e responsabilidades.</p><Box title="AO FINAL DESTE MÓDULO, VOCÊ VAI" lines={["Compreender a sequência lógica de um processo internacional.","Diferenciar fonte oficial, exigência operacional e orientação clínica.","Reconhecer por que o planejamento vem antes da documentação."]}/><h2>O raciocínio vem antes do documento</h2><p>Em transporte internacional pet, cada caso combina destino, rota, animal, prazo disponível e modalidade de viagem. O trabalho profissional é transformar essas informações em um plano claro, viável e cuidadoso.</p><Flow/><Alert /></>}
+function Modalidades(){return <><h1>Escolha a modalidade antes de organizar a viagem.</h1><p className="lesson-lead">PETC, AVIH e AVI descrevem formas diferentes de transporte. Cada uma muda a experiência do tutor, as condições operacionais e os pontos que precisam ser confirmados.</p><Box title="PETC — PET IN CABIN" lines={["Animal transportado na cabine, sujeito às regras da companhia aérea.","Confirme limites de peso, dimensões e condições da bolsa de transporte."]}/><Box title="AVIH E AVI" lines={["AVIH: animal acompanhado, transportado no compartimento de cargas vivas.","AVI: transporte como carga viva, independente do bilhete do tutor.","Em ambos os casos, confirme o procedimento com a companhia aérea antes do planejamento final."]}/><Alert /></>}
+function Fontes(){return <><h1>Fontes oficiais são parte do processo.</h1><p className="lesson-lead">A apostila ajuda a organizar o raciocínio. A resposta final para cada processo precisa ser confirmada nas fontes vigentes.</p><Box title="CONSULTE SEMPRE" lines={sourceLinks.map(x=>`${x}: valide o que se aplica ao destino, à rota e à modalidade.`)}/><h2>Como registrar a consulta</h2><p>Guarde a fonte, a data de acesso e os pontos que afetam aquele processo. Isso melhora a conferência, a comunicação com o tutor e a segurança da sua decisão técnica.</p><Alert /></>}
+function Checklist({checks,setChecks}:{checks:boolean[];setChecks:(v:boolean[])=>void}){return <><h1>Checklist Passageiro Pet</h1><p className="lesson-lead">Use este material como apoio de organização antes da viagem. Salve em PDF quando terminar.</p><div className="checklist">{items.map((item,i)=><label key={item}><input type="checkbox" checked={checks[i]} onChange={()=>setChecks(checks.map((v,n)=>n===i?!v:v))}/><span>{item}</span></label>)}</div><button className="clear" onClick={()=>setChecks(items.map(()=>false))}>Limpar checklist</button><Alert /></>}
+function Box({title,lines}:{title:string;lines:string[]}){return <section className="objective"><p>{title}</p><ul>{lines.map(x=><li key={x}>{x}</li>)}</ul></section>};function Flow(){return <div className="method"><p>FLUXO DE TRABALHO EMBARPET</p><ol><li>Entender destino e rota.</li><li>Consultar fontes vigentes.</li><li>Organizar exigências, prazos e dependências.</li><li>Conferir documentos e emitir o CVI no momento correto.</li></ol></div>};function Alert(){return <div className="warning"><b>Atenção</b><p>Este conteúdo é didático e não substitui a consulta às fontes vigentes nem a responsabilidade técnica do profissional responsável.</p></div>}
