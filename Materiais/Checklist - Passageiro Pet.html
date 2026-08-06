@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="pt-BR">
   <head>
     <meta charset="utf-8" />
@@ -94,296 +94,122 @@
       .top-band {
         position: absolute;
         inset: 0 0 auto 0;
-        height: 56px;
-        background: linear-gradient(180deg, #03266b 0%, #004092 100%);
-      }
-
-      .top-band::after {
-        position: absolute;
-        inset: auto -24px -42px -24px;
-        height: 86px;
-        border-radius: 0 0 50% 50%;
-        background: #fff;
-        content: "";
+        height: 6px;
+        background: linear-gradient(90deg, #003986 0%, #0874d1 100%);
       }
 
       .hero {
         position: relative;
-        height: 236px;
-        padding: 56px 24px 0;
+        height: 148px;
+        padding: 40px 26px 0;
+        background: linear-gradient(180deg, #f6fbff 0%, #ffffff 100%);
       }
 
       .hero-grid {
         position: relative;
         z-index: 2;
         display: grid;
-        grid-template-columns: 124px 360px 1fr;
-        gap: 16px;
-        align-items: start;
+        grid-template-columns: 96px 1fr 180px;
+        gap: 20px;
+        align-items: center;
       }
 
-      .hero-badge {
-        position: relative;
-        width: 116px;
-        height: 116px;
-        margin-top: 12px;
+      /* Clipboard Placeholder (Left) */
+      .hero-badge-placeholder {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 90px;
+        height: 90px;
+        border: 2px dashed #0874d1;
         border-radius: 50%;
-        background: radial-gradient(circle at 31% 25%, #28aaff 0%, #0874d1 38%, #00469e 82%);
-        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.22), 0 10px 24px rgba(0, 48, 116, 0.18);
+        color: #003986;
+        background: #eaf7ff;
       }
 
-      .clipboard-icon {
-        position: absolute;
-        inset: 26px 19px 18px;
-        border: 3px solid #fff;
-        border-radius: 8px;
-        background: rgba(255, 255, 255, 0.96);
-        box-shadow: 0 3px 10px rgba(0, 34, 90, 0.14);
-      }
-
-      .clipboard-icon::before {
-        position: absolute;
-        top: -15px;
-        left: 25px;
+      .hero-badge-placeholder svg {
         width: 34px;
-        height: 18px;
-        border: 4px solid #fff;
-        border-bottom: 0;
-        border-radius: 13px 13px 0 0;
-        background: var(--blue-900);
-        content: "";
+        height: 34px;
+        color: #0874d1;
       }
 
-      .clipboard-icon svg {
-        position: absolute;
-        inset: 12px 9px;
-        width: 55px;
-        height: 54px;
-      }
-
-      .clipboard-mark {
-        position: absolute;
-        inset: 12px 9px;
-        color: var(--blue-950);
-      }
-
-      .clipboard-mark .lucide-icon {
-        width: 55px;
-        height: 54px;
-      }
-
-      .badge-check {
-        position: absolute;
-        right: 8px;
-        bottom: 9px;
-        display: grid;
-        width: 38px;
-        height: 38px;
-        place-items: center;
-        border: 4px solid #fff;
-        border-radius: 50%;
-        background: linear-gradient(135deg, var(--blue-900), var(--blue-700));
-        box-shadow: 0 4px 10px rgba(0, 42, 100, 0.22);
+      .hero-badge-placeholder span {
+        margin-top: 2px;
+        font-size: 9px;
+        font-weight: 800;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
       }
 
       .hero-copy {
-        margin-top: 9px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
       }
 
       .hero-copy h1 {
         margin: 0;
-        color: var(--blue-950);
-        font-family: "Arial Black", Impact, sans-serif;
-        font-size: 62px;
+        color: #031846;
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 45px;
         font-weight: 900;
-        letter-spacing: 0;
-        line-height: 0.86;
-        white-space: nowrap;
-        transform: scaleX(1);
-        transform-origin: left center;
+        letter-spacing: -0.6px;
+        line-height: 0.92;
+        text-transform: uppercase;
       }
 
-      .subtitle {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        width: 100%;
-        margin-top: 7px;
-        color: var(--blue-700);
-        font-family: "Arial Narrow", "Roboto Condensed", Arial, sans-serif;
-        font-size: 36px;
-        font-weight: 400;
+      .hero-subtitle {
+        margin-top: 0;
+        color: #0874d1;
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 35px;
+        font-weight: 900;
+        letter-spacing: 0.3px;
         line-height: 1;
-        white-space: nowrap;
-      }
-
-      .subtitle strong {
-        display: block;
-        width: 100%;
-        font-weight: 400;
-        transform: scaleX(1);
-        transform-origin: left center;
+        text-transform: uppercase;
       }
 
       .hero-copy p {
-        margin: 10px 0 0;
-        color: #14346c;
-        font-size: 14px;
-        line-height: 1.15;
-        white-space: nowrap;
+        margin: 5px 0 0;
+        color: #4c6b95;
+        font-size: 15px;
+        font-weight: 400;
+        line-height: 1.3;
       }
 
-      .plane-rule {
+      /* Pet Carrier Official Image (Right) */
+      .hero-carrier-container {
         position: relative;
-        width: 0;
-        height: 0;
-        margin: 0;
-        border-top: 0;
-      }
-
-      .plane-rule::after {
-        content: none;
-      }
-
-      .plane-rule svg {
-        display: none;
-      }
-
-      .plane-rule .lucide-icon {
-        display: none;
-      }
-
-      .carrier-scene {
-        position: relative;
-        top: -1px;
-        height: 171px;
-      }
-
-      .carrier-scene::before {
-        position: absolute;
-        inset: 0 2px 13px 26px;
-        border-radius: 50%;
-        background: radial-gradient(circle at 48% 48%, #eef9ff 0%, #dff2ff 72%, rgba(223, 242, 255, 0) 73%);
-        content: "";
-      }
-
-      .flight-path {
-        position: absolute;
-        top: 8px;
-        right: 56px;
-        width: 68px;
-        height: 38px;
-        border: 1.6px dashed var(--ink);
-        border-right-color: transparent;
-        border-bottom-color: transparent;
-        border-radius: 50%;
-      }
-
-      .plane-large {
-        position: absolute;
-        top: -2px;
-        right: 8px;
-        width: 50px;
-        height: 50px;
-        color: var(--blue-950);
-        transform: rotate(-12deg);
-      }
-
-      .plane-large .lucide-icon {
-        width: 50px;
-        height: 50px;
-      }
-
-      .carrier {
-        position: absolute;
-        right: 12px;
-        bottom: 14px;
-        width: 176px;
-        height: 112px;
-        border: 3px solid var(--ink);
-        border-radius: 36px 36px 13px 13px;
-        background: linear-gradient(180deg, #fff 0%, #f9fbff 100%);
-        transform: perspective(360px) rotateY(-7deg);
-        box-shadow: 0 8px 18px rgba(0, 36, 86, 0.14);
-      }
-
-      .carrier-handle {
-        position: absolute;
-        top: -25px;
-        left: 62px;
-        width: 51px;
-        height: 24px;
-        border: 7px solid var(--blue-950);
-        border-bottom: 0;
-        border-radius: 12px 12px 0 0;
-      }
-
-      .carrier-top {
-        position: absolute;
-        inset: 0;
-        border-radius: 33px 33px 10px 10px;
-        background: linear-gradient(180deg, #ffffff 0 50%, #063984 51% 100%);
-        clip-path: polygon(0 0, 100% 0, 96% 62%, 0 52%);
-      }
-
-      .carrier-door {
-        position: absolute;
-        top: 21px;
-        left: 16px;
-        display: grid;
-        width: 59px;
-        height: 71px;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 3px;
-        padding: 5px;
-        border: 3px solid var(--blue-950);
-        border-radius: 17px 5px 5px 17px;
-        background: #fff;
-      }
-
-      .carrier-door span {
-        border: 1.6px solid var(--blue-950);
-        border-radius: 3px;
-      }
-
-      .vents {
-        position: absolute;
-        top: 29px;
-        right: 20px;
         display: flex;
-        gap: 9px;
+        align-items: center;
+        justify-content: center;
+        width: 175px;
+        height: 104px;
       }
 
-      .vents i {
-        width: 5px;
-        height: 30px;
-        border-radius: 5px;
-        background: var(--blue-800);
+      .blob-bg {
+		position: absolute;
+		z-index: 0;
+		width: 250%;
+		height: 220%;
+		top: 32%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		opacity: 0.5;
       }
 
-      .carrier-paw {
-        position: absolute;
-        right: 36px;
-        bottom: 23px;
-        width: 31px;
-        height: 28px;
-        color: #fff;
+      .hero-carrier-container > svg:not(.blob-bg),
+      .hero-carrier-container > .carrier-img {
+        position: relative;
+        z-index: 1;
       }
 
-      .carrier-paw .lucide-icon {
-        width: 31px;
-        height: 28px;
-      }
-
-      .hero-wave {
-        position: absolute;
-        right: -28px;
-        bottom: 0;
-        left: -28px;
-        height: 48px;
-        border-top: 4px solid var(--blue-700);
-        border-radius: 50% 0 0 0;
-        transform: rotate(-3deg);
+      .carrier-img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        filter: drop-shadow(0 6px 14px rgba(0, 57, 134, 0.14));
       }
 
       .content {
@@ -391,7 +217,7 @@
         grid-template-columns: 424px 314px;
         gap: 18px;
         justify-content: center;
-        padding: 11px 21px 0;
+        padding: 30px 21px 0;
       }
 
       .panel {
@@ -494,6 +320,7 @@
         min-height: 40px;
         grid-template-columns: 54px 50px 1fr;
         align-items: center;
+        padding: 2px 0;
         cursor: pointer;
         transition: background 130ms ease;
       }
@@ -503,7 +330,7 @@
       }
 
       .checklist li.tall-row label {
-        min-height: 49px;
+        min-height: 48px;
       }
 
       .checklist input[type="checkbox"] {
@@ -665,21 +492,27 @@
 
       .item-text {
         padding-right: 8px;
-        font-size: 16px;
-        line-height: 1.12;
-        letter-spacing: -0.1px;
+        color: #061e4d;
+        font-size: 15px;
+        font-weight: 700;
+        line-height: 1.3;
+        letter-spacing: -0.15px;
       }
 
       .item-text small {
         display: inline;
-        margin-left: 3px;
-        color: #003f91;
-        font-size: 12.8px;
+        margin-left: 4px;
+        color: #0866b8;
+        font-size: 12px;
+        font-weight: 600;
       }
 
       .tall-row .item-text small {
         display: block;
         margin: 2px 0 0;
+        color: #0866b8;
+        font-size: 12px;
+        font-weight: 600;
       }
 
       .attention-panel {
@@ -692,7 +525,7 @@
 
       .attention-item {
         display: grid;
-        min-height: 122px;
+        min-height: 132px;
         grid-template-columns: 93px 1fr;
         gap: 10px;
         align-items: center;
@@ -701,7 +534,7 @@
       }
 
       .attention-item:first-child {
-        min-height: 174px;
+        min-height: 180px;
       }
 
       .attention-item:last-child {
@@ -792,7 +625,7 @@
         display: grid;
         grid-template-columns: repeat(4, 1fr);
         justify-content: center;
-        margin: 11px 18px 0;
+        margin: 16px 21px 0;
         border: 1.8px solid var(--blue-700);
         border-radius: 14px;
         background: linear-gradient(180deg, #fff, #f9fdff);
@@ -801,10 +634,10 @@
 
       .field {
         position: relative;
-        min-height: 68px;
+        min-height: 72px;
         min-width: 0;
         padding: 14px 15px 10px 54px;
-        border-right: 1.4px dotted var(--line)
+        border-right: 1.4px dotted var(--line);
       }
 
       .field:last-child {
@@ -858,11 +691,14 @@
       }
 
       .footer {
-        position: relative;
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
         overflow: hidden;
         display: grid;
-        min-height: 60px;
-        margin-top: 10px;
+        height: 56px;
+        margin: 0;
         padding: 0 118px 0 148px;
         align-items: center;
         background:
@@ -896,7 +732,7 @@
       .footer p {
         position: relative;
         z-index: 3;
-        margin: 0 20px;
+        margin: 15px 20px;
         max-width: 408px;
         color: #092a63;
         font-size: 12.2px;
@@ -1037,39 +873,21 @@
 
       <header class="hero">
         <div class="hero-grid">
-          <div class="hero-badge" aria-hidden="true">
-            <div class="clipboard-icon">
-              <span class="icon-mount clipboard-mark" data-icon="clipboardCheck" aria-hidden="true"></span>
-            </div>
-            <div class="badge-check" data-icon="check"></div>
-          </div>
+		<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 508 511.7"><g image-rendering="optimizeQuality" shape-rendering="geometricPrecision" text-rendering="geometricPrecision"><path fill="#fff" d="M242.3 0c66.9 0 127.5 27.1 171.3 71 43.8 43.8 71 104.4 71 171.3s-27.1 127.5-71 171.3c-43.8 43.8-104.4 71-171.3 71s-127.5-27.1-171.3-71C27.1 369.7 0 309.2 0 242.3S27.1 114.8 71 71C114.8 27.1 175.4 0 242.3 0"/><path fill="#0874d1" fill-rule="evenodd" d="M242.3 6.2c130.4 0 236.1 105.7 236.1 236.1S372.7 478.4 242.3 478.4 6.2 372.6 6.2 242.3 111.9 6.2 242.3 6.2"/><path fill="#fff" fill-rule="evenodd" d="M242.3 35.6c114.2 0 206.7 92.5 206.7 206.7S356.5 449 242.3 449 35.6 356.4 35.6 242.3 128.1 35.6 242.3 35.6"/><path fill="#061e4d" fill-rule="evenodd" d="M197.1 102.9c21.5 0 38.9 26.7 38.9 59.6S218.6 222 197.1 222s-38.9-26.7-38.9-59.5 17.4-59.6 38.9-59.6m49.4 144.2c45.5 0 51.1 30.2 89.5 81.8 19.1 37.5-5.7 61.2-48.3 51.1-19.3-9.8-32.9-13.3-46.5-12.8-23.6.8-29.5 16.4-57 15.3-21.2-.6-30.7-9.4-32.6-23-2-14.4 3.6-23.5 10.3-35.4 26.2-46.3 53.4-82.8 84.5-77ZM122 191.2c-16 6.3-21.2 31.4-11.4 56 9.7 24.6 30.6 39.4 46.6 33 16-6.3 21.2-31.4 11.4-56-9.7-24.6-30.6-39.4-46.6-33m240.5 0c16 6.3 21.2 31.4 11.4 56-9.7 24.6-30.6 39.4-46.6 33-16-6.3-21.2-31.4-11.4-56 9.7-24.6 30.6-39.4 46.6-33m-75.8-89.1c21.5 0 38.9 26.7 38.9 59.6s-17.4 59.5-38.9 59.5-38.9-26.7-38.9-59.5 17.4-59.6 38.9-59.6"/><path fill="#fff" d="M388.9 273.5c32.9 0 62.7 13.3 84.2 34.9 21.6 21.6 34.9 51.3 34.9 84.2s-13.3 62.7-34.9 84.2c-21.6 21.6-51.3 34.9-84.2 34.9s-62.7-13.3-84.2-34.9c-21.6-21.6-34.9-51.3-34.9-84.2s13.3-62.7 34.9-84.2 51.3-34.9 84.2-34.9"/><path fill="#10a64a" fill-rule="evenodd" d="M388.9 295.2c53.8 0 97.3 43.6 97.3 97.3s-43.6 97.3-97.3 97.3-97.3-43.6-97.3-97.3 43.6-97.3 97.3-97.3"/><path fill="#fff" fill-rule="evenodd" d="m358.6 376 17.2 16.3 41-41.5c3.4-3.4 5.5-6.2 9.7-1.9l13.5 13.9c4.4 4.4 4.2 7 0 11l-56.5 55.6c-8.8 8.7-7.3 9.2-16.2.3l-31.4-31.3c-1.9-2-1.7-4.1.4-6.1L352 376c2.4-2.5 4.3-2.3 6.7 0Z"/></g></svg>
 
           <div class="hero-copy">
             <h1>CHECKLIST</h1>
-            <div class="subtitle">
-              <strong>PASSAGEIRO PET</strong>
-            </div>
+            <div class="hero-subtitle">PASSAGEIRO PET</div>
             <p>Tudo o que você precisa conferir antes da viagem do seu pet</p>
-            <div class="plane-rule" data-icon="plane" aria-hidden="true"></div>
           </div>
 
-          <div class="carrier-scene" aria-hidden="true">
-            <div class="flight-path"></div>
-            <span class="plane-large icon-mount" data-icon="plane" aria-hidden="true"></span>
-            <div class="carrier">
-              <div class="carrier-handle"></div>
-              <div class="carrier-top"></div>
-              <div class="carrier-door">
-                <span></span><span></span><span></span><span></span>
-                <span></span><span></span><span></span><span></span>
-                <span></span><span></span><span></span><span></span>
-              </div>
-              <div class="vents"><i></i><i></i><i></i><i></i><i></i></div>
-              <span class="carrier-paw icon-mount" data-icon="pawPrint" aria-hidden="true"></span>
-            </div>
+          <div class="hero-carrier-container" aria-label="Caixa de Transporte Pet">
+            <svg class="blob-bg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+              <path fill="#D0E2FF" d="M62.1,-43.6C76.1,-31.9,80.1,-6.4,74.3,16C68.4,38.4,52.7,57.6,32.5,67.2C12.3,76.8,-12.3,76.7,-33.2,67.3C-54.2,57.9,-71.5,39.1,-75.4,18.2C-79.4,-2.6,-70.1,-25.5,-55.3,-37.3C-40.5,-49.1,-20.2,-49.8,1.9,-51.3C24,-52.8,48.1,-55.2,62.1,-43.6Z" transform="translate(100 100)" />
+            </svg>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2000 2000"><defs><style>.st0{fill:#def1ff}.st1{fill:#00afdb}.st2{opacity:.2}.st2,.st3{fill:#00a0c9}.st2{mix-blend-mode:multiply}.st5{stroke:#cfeeff;stroke-linejoin:round;stroke-width:2.5px}.st5,.st7{fill:none}.st8{fill:#008fba}.st9{fill:#ebf6ff}.st7{stroke-linecap:round;stroke-miterlimit:10;stroke-width:15.9px}.st13{fill:#bde4ff}</style></defs><g style="isolation:isolate"><path d="M0 0h2000v2000H0z" style="fill:none"/><path d="M1587.7 443.2 1329 404l-258.8-39.2-113 447.2 113 481.4 258.8 39.2 258.7 39.2 113-447.2z" class="st8"/><path d="m1329 367.4-289.1-43.8c-20-3-37.4 8-42.2 26.6l-96.2 373.7-20.7-3.1c-26.4-4-47.8 14.2-47.8 40.6v31.7L977.3 815l100.1-402.5 251.7 38.1v-83.2z" class="st13"/><path d="m1329 367.4 289.1 43.8c20 3 37.4 19.3 42.2 39.4l96.2 402.9 20.7 3.1c26.4 4 47.8 28.7 47.8 55.1v31.7l-144.3-21.9-100.1-432.8-251.7-38.1v-83.2z" class="st13"/><path d="m1329 1369.2-289.1-43.8c-20-3-37.4-19.3-42.2-39.4l-96.2-402.9-20.7-3.1c-26.4-4-47.8-28.7-47.8-55.1v-31.7l144.3 21.9 100.1 432.8 251.7 38.1v83.2z" class="st1"/><path d="m1329 1369.2 289.1 43.8c20 3 37.4-8 42.2-26.6l96.2-373.7 20.7 3.1c26.4 4 47.8-14.2 47.8-40.6v-31.7l-144.3-21.9-100.1 402.5-251.7-38.1v83.2z" class="st1"/><path d="M982.7 812.8 1743 931l-124.9-479.5-574.3-92.4z" style="fill:#77bef8"/><path d="m901.4 724-35.1-3.1-618.5 256.8 39.9 2.1z" class="st0"/><path d="m1661.2 1384 95.3-371.4-613.7 255.8-118.7 398.6 606.9-248.4c15-6.1 26.1-19 30.2-34.6" class="st3"/><path d="M1645.8 1199.2c29.9 43 15.3 184.7-97.3 253.1l82.4-33.7c15-6.1 26.1-19 30.2-34.6l95.3-371.4-613.7 255.8-9.7 37.8c146.5 2.6 438.5-213.5 512.8-106.9z" class="st2"/><path d="m1660.3 450.7-42.2-39.4-613.8 255.8 50.5 74 87.9 368.3 613.7-255.8-96.2-402.9zm-461 611.9s-120.9-358.8-74.3-371c38.5-10.1 138.9 344.1 138.9 344.1zm109.4-46.1s-120.9-358.8-74.3-371c38.5-10.1 138.9 344.1 138.9 344.1zm108.9-45s-120.9-358.8-74.3-371c38.5-10.1 138.9 344.1 138.9 344.1zm107-45.1s-120.9-358.8-74.3-371c38.5-10.1 138.9 344.1 138.9 344.1zm34.6-416.8c38.5-10.1 138.9 344.1 138.9 344.1l-64.6 26.9s-120.9-358.8-74.3-371M1777.2 856.7l-613.7 255.8 47.8 55v31.7l613.8-255.7v-31.8z" class="st13"/><path d="M1756.5 853.5c24.5 2.9 37.9 4.4 53.9 21.5l-614.5 255-53.2-20.7 613.7-255.8z" class="st0"/><path d="M1142.8 1268.4s23 16.6 68.6-2.8c45.5-19.4 578.2-234.2 602.2-261 16-17.8 11.6-29.4 11.6-61.2l-613.7 255.8-12.1 50.1s-35.5 25.4-56.5 19z" class="st1"/><path d="m982.7 812.8-639.2 255 113 481.4 258.7 39.2 258.7 39.2 113.1-447.2z" class="st8"/><path d="M442.6 600.2 317.8 985.7l25.6 82.1 639.2-254.9 6.7-296.4c-17.9 73-39.5 145.3-39.5 145.3L883 691.5s66.8-271.4 112.1-317.7v-3.6c.1 0-552.5 230.1-552.5 230.1zm-9.3 291.9s76.2-309.8 121-323.9c37-11.7-54.2 294.2-54.2 294.2zm113.4-50.9s76.2-309.8 121-323.9c37-11.6-54.2 294.2-54.2 294.2zm112.6-49.7s76.2-309.8 121-323.9c37-11.6-54.2 294.2-54.2 294.2zM837 712.2l-66.8 29.7s76.2-309.8 121-323.9c37-11.6-54.2 294.2-54.2 294.2" style="fill:#83c3f8"/><path d="M417.4 1519.6s517-179.2 652.9-226.1l-56.7 358.9z" style="fill:#00a0c9;mix-blend-mode:multiply;opacity:.4"/><path d="m715.2 1624.9-289.1-43.8c-20-3-37.4-19.3-42.2-39.4l-96.2-402.9-20.7-3.1c-26.4-4-47.8-28.7-47.8-55.1v-31.7l144.3 21.9 100.1 432.8 251.7 38.1v83.2z" class="st1"/><path d="m715.2 1624.9 289.1 43.8c20 3 37.4-8 42.2-26.6l96.2-373.7 20.7 3.1c26.4 4 47.8-14.2 47.8-40.6v-31.7l-144.3-21.9-100.1 402.5-251.7-38.1v83.2z" class="st1"/><path d="m715.2 623.2-289.1-43.8c-20-3-37.4 8-42.2 26.6l-96.2 373.7-20.7-3.1c-26.4-4-47.8 14.2-47.8 40.6v31.7l144.3 21.9 100.1-402.5 251.7 38.1v-83.2z" class="st13"/><path d="m715.2 623.2 289.1 43.8c20 3 37.4 19.3 42.2 39.4l96.2 402.9 20.7 3.1c26.4 4 47.8 28.7 47.8 55.1v31.7l-144.3-21.9-100.1-432.8-251.7-38.1v-83.2z" class="st13"/><path d="m1133 1306.1 11.5-42.7-91.3-31-10 40.2c5 14.7 72.9 32.3 89.8 33.5" class="st2"/><path d="m1211.1 1265.7-140.2-23.4-43.5 11.3c53.5 24.3 116.8 28.4 150.1 22.4 9.3-1.7 33.6-10.3 33.6-10.3" class="st1"/><path d="m1045.6 1186.5 148.7 9.8 16.8 69.4-183.7-12z" class="st1"/><path d="m933.6 771.9-218.4-33.1-218.3-33-91.1 371.4 91.1 399 218.3 33.1 218.4 33.1 91-371.4zM496.9 709v767.2M606.1 725.5v767.3M472.6 801.2l485.3 73.5M448 893.4l534.5 81M496.9 996.8l436.7 66.1M405.8 1077.2l618.8 93.8M425.5 985.9l579.5 87.8M425.5 1177.8l579.5 87.8M448 1277.1l534.5 81M472.6 1376.8l485.3 73.5M496.9 1476.4l436.7 66.2M715.2 742.1v767.2M824.4 758.6v767.3M933.6 775.1v767.3" class="st5"/><path d="m516.5 1511.6-36.3-5.5v-39.3l36.3 5.5z" class="st0"/><path d="m509.5 1519.6-22.4-3.4v-9l22.4 3.4z" class="st8"/><path d="m509.5 1519.6-22.5-3.4v25.2l66.4 10.1c9.8 1.5 14.3-5.8 7-11.2z" class="st9"/><path d="m914 1571.8 36.3 5.5V1538l-36.3-5.5z" class="st0"/><path d="m920.9 1581.9 22.5 3.4v-9l-22.5-3.4z" class="st8"/><path d="m920.9 1581.9 22.5 3.4v25.2l-66.4-10.1c-9.8-1.5-14.3-10.2-7-13.3z" class="st9"/><path d="m516.5 676.3-36.3-5.5v39.3l36.3 5.5z" class="st0"/><path d="m509.5 666.3-22.4-3.4v9l22.4 3.4z" class="st8"/><path d="m509.5 666.3-22.5-3.4v-24.7l66.4 10.1c9.8 1.5 14.3 10 7 13.1l-50.9 5z" class="st9"/><path d="m914 736.5 36.3 5.5v39.4l-36.3-5.5z" class="st0"/><path d="m920.9 728.6 22.5 3.4v9l-22.5-3.4z" class="st8"/><path d="m920.9 728.6 22.5 3.4v-24.7L877 697.2c-9.8-1.5-14.3 5.7-7 11z" class="st9"/><path d="m409 580.3 604.6-251.8 604.5 82.8L1004.4 667z" class="st13"/><path d="M1149.2 397.8c-20.2-19.9-69.5-36.5-101.6-22.5l-126.3 55.6c-19 8.3-36.3 24.3-49 43.4s-21.7 60.5-21.2 83.7l37.4 8.3 30.5-13.4-6.2-34.2 4.3-9.9 40.7-48.5-7.4-10.3 106.9-46c26.2-11.5 45.9 18.1 54.4 39.3l9.3-4.1 26.9 4.1 1.4-45.5z" class="st3"/><path d="m1111.7 443.2 37.4 8.3 21.5-9.4-37.4-8.3z" class="st3"/><path d="m1170.6 442.1-21.5 9.5c0-22.5-28.2-50.8-54.4-39.3l-117.1 50.4c-41 20-57.1 53.7-58.6 90.2l-30.5 13.4c0-35.7 8.5-64.6 21.2-83.7s30-35 49-43.4l126.3-55.6c37.9-16.7 81.4 15.5 85.6 58.5" class="st1"/><path d="M851.3 549.6s4.6 10.7 37.2 10.6c23.2 0 32.4-11.6 32.4-11.6M1111.7 445.8c11.5 6.9 21.5 5.8 37.4 5.8s21.5-9.5 21.5-9.5" class="st7"/><path d="m1211.3 1199.2-140.2-23.4-25.5 10.6s83.4 31.4 138 20.3c12.3-2.5 27.7-7.6 27.7-7.6z" class="st13"/><path d="m1028.8 1117 167.1 13 15.4 69.2-165.7-12.7z" class="st13"/><path d="m1142.6 1109.3-94.7-14.4s-16.3 14.1-19.1 22.1c0 0 107.4 26.8 140.7 20.8 9.3-1.7 26.4-7.8 26.4-7.8-9.6-13.9-26.1-21.9-53.3-20.7" class="st0"/><path d="m288.1 1138.8 91.8 2.9 10.9 47.3c-25.3-35-98.2-29.7-98.2-29.7l-4.4-20.5z" class="st2"/><path d="m363.5 1070.8-21.9 11.2 15.5 69.9 22.8-10.2zM357.1 1151.9l-98.2-18.1-39.8-72 122.5 20.2z" class="st1"/><path d="m341.6 1082 15.5-69.8-130.4-19.6s-12.7 8.2-7.5 69.2l122.5 20.2z" class="st13"/><path d="M287.7 979.8c-28.7-7.6-48.6-2.8-61 12.8l130.4 19.6 25.3-17.6-94.7-14.9z" class="st0"/><path d="m357.1 1012.2-15.5 69.8 21.9-11.2 18.9-76.2c-10.4 3.6-16.8 10.1-25.3 17.6" class="st13"/><path d="M426.1 579.4s566.6 76.5 603.4 99.4c36.9 22.9 83.4 370.1 113.2 430.5 0 0-93-413.2-85.9-434 7.1-20.9 320.6-154.3 561.2-241.5-342.5 105.3-528.1 216.7-576.6 225.3-21 3.8-536.8-81.3-615.4-79.7z" class="st0"/></g></svg>
           </div>
         </div>
-        <div class="hero-wave"></div>
       </header>
 
       <section class="content">
@@ -1089,8 +907,8 @@
             <li><label><input type="checkbox" name="item-recipiente" /><span class="box"></span><span class="item-icon"><svg class="stroke-icon" viewBox="0 0 48 48"><path d="M10 25h28l-4 14H14l-4-14Z"></path><path d="M14 23c4-4 16-4 20 0"></path></svg></span><span class="item-text">Recipiente para água e ração</span></label></li>
             <li><label><input type="checkbox" name="item-refeicoes" /><span class="box"></span><span class="item-icon"><svg class="stroke-icon" viewBox="0 0 48 48"><path d="M15 10h18l3 29H12l3-29Z"></path><circle cx="24" cy="25" r="5"></circle><path d="M18 16h12"></path></svg></span><span class="item-text">4 porções de refeições</span></label></li>
             <li><label><input type="checkbox" name="item-vacinacao" /><span class="box"></span><span class="item-icon"><svg class="stroke-icon" viewBox="0 0 48 48"><path d="M14 7h18l5 5v29H14z"></path><path d="M32 7v8h7M19 20h12M19 27h12M19 34h7"></path></svg></span><span class="item-text">Carteirinha de vacinação <small>(original)</small></span></label></li>
-            <li class="tall-row"><label><input type="checkbox" name="item-sorologia" /><span class="box"></span><span class="item-icon"><svg class="stroke-icon" viewBox="0 0 48 48"><path d="M15 7h18l5 5v29H15z"></path><path d="M33 7v8h7M19 21h10M19 28h8"></path><path d="M30 33l4 4 7-9"></path></svg></span><span class="item-text">Laudo da sorologia ou exames adicionais <small>Se exigido pelo país</small></span></label></li>
-            <li class="tall-row"><label><input type="checkbox" name="item-microchip" /><span class="box"></span><span class="item-icon"><svg class="stroke-icon" viewBox="0 0 48 48"><path d="M16 16h16v16H16z"></path><path d="M21 21h6v6h-6zM10 19h6M10 25h6M10 31h6M32 19h6M32 25h6M32 31h6M19 10v6M25 10v6M31 10v6M19 32v6M25 32v6M31 32v6"></path></svg></span><span class="item-text">Certificado de microchip <small>Se exigido pelo país</small></span></label></li>
+            <li class="tall-row"><label><input type="checkbox" name="item-sorologia" /><span class="box"></span><span class="item-icon"><svg class="stroke-icon" viewBox="0 0 48 48"><path d="M15 7h18l5 5v29H15z"></path><path d="M33 7v8h7M19 21h10M19 28h8"></path><path d="M30 33l4 4 7-9"></path></svg></span><span class="item-text">Laudo da sorologia ou exames adicionais <small>(Se exigido pelo país)</small></span></label></li>
+            <li class="tall-row"><label><input type="checkbox" name="item-microchip" /><span class="box"></span><span class="item-icon"><svg class="stroke-icon" viewBox="0 0 48 48"><path d="M16 16h16v16H16z"></path><path d="M21 21h6v6h-6zM10 19h6M10 25h6M10 31h6M32 19h6M32 25h6M32 31h6M19 10v6M25 10v6M31 10v6M19 32v6M25 32v6M31 32v6"></path></svg></span><span class="item-text">Certificado de microchip <small>(Se exigido pelo país)</small></span></label></li>
             <li><label><input type="checkbox" name="item-cvi" /><span class="box"></span><span class="item-icon"><svg class="stroke-icon" viewBox="0 0 48 48"><path d="M14 7h19l5 5v29H14z"></path><path d="M33 7v8h7M19 20h11M19 27h11M19 34h8"></path><circle cx="35" cy="34" r="5"></circle><path d="m32 34 2 2 4-5"></path></svg></span><span class="item-text">CVI emitido</span></label></li>
             <li><label><input type="checkbox" name="item-permit" /><span class="box"></span><span class="item-icon"><svg class="stroke-icon" viewBox="0 0 48 48"><path d="M14 7h19l5 5v29H14z"></path><path d="M33 7v8h7M19 21h12M19 28h12M19 35h7"></path><path d="M31 33h9"></path></svg></span><span class="item-text">Import permit <small>(Se exigido pelo país)</small></span></label></li>
             <li><label><input type="checkbox" name="item-notificacao" /><span class="box"></span><span class="item-icon"><svg class="stroke-icon" viewBox="0 0 48 48"><path d="M13 34h22l-3-5v-9c0-5-3-9-8-9s-8 4-8 9v9l-3 5Z"></path><path d="M21 38c1.5 2 4.5 2 6 0M24 7v4"></path></svg></span><span class="item-text">Notificação de chegada <small>(Se exigido pelo país)</small></span></label></li>
@@ -1107,23 +925,23 @@
           <div class="attention-list">
             <article class="attention-item">
               <span class="attention-icon" data-icon="clock"></span>
-              <p>Chegar no aeroporto<br /><strong>4 horas</strong> de antecedência<br />antes do embarque,<br />para que a companhia<br />aérea avalie toda<br />a documentação.</p>
+              <p>Chegar no aeroporto<br /><strong>4 horas</strong> de antecedência<br />antes do embarque,<br />para que a companhia<br />aérea avalie toda<br />a documentação</p>
             </article>
             <article class="attention-item">
               <span class="attention-icon no-food" data-icon="bowl"></span>
-              <p>Não recomendamos<br />ração dentro de<br /><strong>6 horas</strong> antes do<br />embarque.</p>
+              <p>Não recomendamos<br />ração dentro de<br /><strong>6 horas</strong> antes do<br />embarque</p>
             </article>
             <article class="attention-item">
               <span class="attention-icon" data-icon="droplet"></span>
-              <p>Água <strong>sempre</strong> à<br />disposição do pet.</p>
+              <p>Água <strong>sempre</strong> à<br />disposição do pet</p>
             </article>
             <article class="attention-item">
               <span class="attention-icon" data-icon="clipboardCheck"></span>
-              <p>Confira <strong>toda a<br />documentação</strong><br />antes de sair de casa.</p>
+              <p>Confira <strong>toda a<br />documentação</strong><br />antes de sair de casa</p>
             </article>
             <article class="attention-item">
               <span class="attention-icon" data-icon="tag"></span>
-              <p>Identifique a caixa de<br />transporte com <strong>etiqueta<br />e contatos</strong> atualizados.</p>
+              <p>Identifique a caixa de<br />transporte com <strong>etiqueta<br />e contatos</strong> atualizados</p>
             </article>
           </div>
         </aside>
