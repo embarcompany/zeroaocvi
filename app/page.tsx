@@ -35,11 +35,12 @@ export default function Home() {
             <a className="text-link" href="#como-funciona">Como funciona</a>
           </div>
         </div>
-        <div className="hero-editorial" aria-label="Destaque editorial">
-          <p className="editorial-label">O MÉTODO EMBARPET</p>
-          <p className="editorial-quote">O documento é a última etapa. O trabalho especializado começa no planejamento.</p>
-          <div className="editorial-rule" />
-          <p className="editorial-caption">Planejamento · documentação · cuidado</p>
+        <div className="hero-media">
+          <img src="/hero-pet.png" alt="Cão tranquilo ao lado de uma caixa de transporte durante o planejamento da viagem" />
+          <div className="media-note">
+            <p>O MÉTODO EMBARPET</p>
+            <span>Planejamento · documentação · cuidado</span>
+          </div>
         </div>
       </section>
 
