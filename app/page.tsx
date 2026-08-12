@@ -9,11 +9,13 @@ import {
   Check,
   ChevronDown,
   ClipboardCheck,
+  Copy,
   FileCheck2,
   FileText,
   Highlighter,
   Italic,
   MapPin,
+  Mail,
   Moon,
   PawPrint,
   Plane,
@@ -46,6 +48,63 @@ const modules = [
   ["Documentação veterinária e emissão do CVI", "Conferência e certificação"],
   ["Gestão e precificação do serviço", "Valor técnico da atuação"],
 ] as const;
+
+const countryFlags = [
+  ["Emirados Árabes Unidos", "🇦🇪", "Emirados Árabes Unidos"],
+  ["União Europeia", "🇪🇺", "União Europeia"],
+  ["Estados Unidos", "🇺🇸", "Estados Unidos"],
+  ["Reino Unido", "🇬🇧", "Reino Unido"],
+  ["Portugal", "🇵🇹", "Portugal"],
+  ["Panamá", "🇵🇦", "Panamá"],
+  ["Argentina", "🇦🇷", "Argentina"],
+  ["Paraguai", "🇵🇾", "Paraguai"],
+  ["Bolívia", "🇧🇴", "Bolívia"],
+  ["Canadá", "🇨🇦", "Canadá"],
+  ["Chile", "🇨🇱", "Chile"],
+  ["Brasil", "🇧🇷", "Brasil"],
+] as const;
+
+const countryFlagPattern = new RegExp(
+  `(${countryFlags.map(([country]) => country).join("|")})`,
+  "gi",
+);
+
+const siteUrlPattern = /<?(https?:\/\/[^\s<>]+)>?/gi;
+
+function renderCountryFlags(text: string) {
+  return text.split(countryFlagPattern).map((part, index) => {
+    const country = countryFlags.find(
+      ([name]) => name.toLocaleLowerCase("pt-BR") === part.toLocaleLowerCase("pt-BR"),
+    );
+    if (!country) return part;
+    const [, flag, label] = country;
+    return (
+      <span className="country-mention" key={`${label}-${index}`}>
+        <span aria-hidden="true">{flag}</span>
+        <span className="sr-only">{label}: </span>
+        {part}
+      </span>
+    );
+  });
+}
+
+function renderLinkedText(text: string) {
+  return text.split(siteUrlPattern).map((part, index) => {
+    const url = part.replace(/^<|>$/g, "");
+    if (!/^https?:\/\//i.test(url)) return renderCountryFlags(part);
+    return (
+      <a
+        className="content-link"
+        href={url}
+        key={`site-${url}-${index}`}
+        target="_blank"
+        rel="noreferrer"
+      >
+        {url.replace(/^https?:\/\//i, "").replace(/\/$/, "")}
+      </a>
+    );
+  });
+}
 
 const moduleLessons = [
   [
@@ -1347,6 +1406,46 @@ function ModuleRecap({
   );
 }
 
+function EmailTemplateEmbed({ content }: { content: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const copyTemplate = async () => {
+    try {
+      await navigator.clipboard.writeText(content);
+    } catch {
+      const textarea = document.createElement("textarea");
+      textarea.value = content;
+      textarea.style.position = "fixed";
+      textarea.style.opacity = "0";
+      document.body.append(textarea);
+      textarea.select();
+      document.execCommand("copy");
+      textarea.remove();
+    }
+    setCopied(true);
+    window.setTimeout(() => setCopied(false), 1800);
+  };
+
+  return (
+    <section className="email-template" aria-label="Modelo de e-mail copiável">
+      <header>
+        <span className="email-template-icon"><Mail size={18} strokeWidth={2.2} aria-hidden="true" /></span>
+        <div>
+          <p>MODELO DE E-MAIL</p>
+          <small>Edite os campos antes de enviar.</small>
+        </div>
+        <button type="button" onClick={copyTemplate} aria-live="polite">
+          {copied ? <Check size={15} strokeWidth={2.6} aria-hidden="true" /> : <Copy size={15} strokeWidth={2.2} aria-hidden="true" />}
+          {copied ? "Copiado" : "Copiar modelo"}
+        </button>
+      </header>
+      <div className="email-template-content" data-reader-block="email-template">
+        {renderLinkedText(content)}
+      </div>
+    </section>
+  );
+}
+
 function NativeCourseContent({
   module,
   lessons,
@@ -1412,11 +1511,11 @@ function NativeCourseContent({
     const noteKey = lesson ? `${module - 1}:${lesson}` : "";
     const heading =
       level === 4 ? (
-        <h4 id={id}>{text}</h4>
+        <h4 id={id}>{renderLinkedText(text)}</h4>
       ) : level === 3 ? (
-        <h3 id={id}>{text}</h3>
+        <h3 id={id}>{renderLinkedText(text)}</h3>
       ) : (
-        <h2 id={id}>{text}</h2>
+        <h2 id={id}>{renderLinkedText(text)}</h2>
       );
     if (!lesson) return heading;
     return (
@@ -1465,7 +1564,7 @@ function NativeCourseContent({
             ? item.start !== undefined && item.end !== undefined
             : text.includes(item.text)),
       );
-    if (!mark) return text;
+    if (!mark) return renderLinkedText(text);
     if (
       mark.blockId === blockId &&
       mark.start !== undefined &&
@@ -1473,19 +1572,19 @@ function NativeCourseContent({
     )
       return (
         <>
-          {text.slice(0, mark.start)}
+          {renderLinkedText(text.slice(0, mark.start))}
           <mark className={`text-mark text-mark-${mark.style}`}>
-            {text.slice(mark.start, mark.end)}
+            {renderLinkedText(text.slice(mark.start, mark.end))}
           </mark>
-          {text.slice(mark.end)}
+          {renderLinkedText(text.slice(mark.end))}
         </>
       );
     return text.split(mark.text).map((part, index, pieces) => (
       <span key={`${part}-${index}`}>
-        {part}
+        {renderLinkedText(part)}
         {index < pieces.length - 1 && (
           <mark className={`text-mark text-mark-${mark.style}`}>
-            {mark.text}
+            {renderLinkedText(mark.text)}
           </mark>
         )}
       </span>
@@ -1571,6 +1670,14 @@ function NativeCourseContent({
       </section>
     );
 
+  const emailTemplateRanges = new Map<number, number>();
+  blocks.forEach((block, start) => {
+    if (block.type !== "heading" || !/modelo de e-mail/i.test(block.text)) return;
+    let end = start + 1;
+    while (end < blocks.length && blocks[end].type === "paragraph") end += 1;
+    if (end > start + 1) emailTemplateRanges.set(start, end);
+  });
+
   return (
     <section className="native-course" ref={courseRef}>
       <div className="native-course-head">
@@ -1627,7 +1734,21 @@ function NativeCourseContent({
         </div>
       )}
       <div className="native-blocks">
-        {blocks.map((block, index) =>
+        {blocks.map((block, index) => {
+          const templateEnd = emailTemplateRanges.get(index);
+          const insideTemplate = [...emailTemplateRanges.entries()].some(
+            ([start, end]) => index > start && index < end,
+          );
+          if (insideTemplate) return null;
+          if (templateEnd) {
+            const content = blocks
+              .slice(index + 1, templateEnd)
+              .map((item) => item.type === "paragraph" ? item.text : "")
+              .filter(Boolean)
+              .join("\n\n");
+            return <EmailTemplateEmbed content={content} key={`email-template-${index}`} />;
+          }
+          return (
           block.type === "table" ? (
             <div className="native-table-wrap" key={`table-${index}`}>
               <table>
@@ -1637,11 +1758,11 @@ function NativeCourseContent({
                       {row.map((cell, cellIndex) =>
                         rowIndex === 0 ? (
                           <th key={`${index}-${rowIndex}-${cellIndex}`}>
-                            {cell}
+                            {renderLinkedText(cell)}
                           </th>
                         ) : (
                           <td key={`${index}-${rowIndex}-${cellIndex}`}>
-                            {cell}
+                            {renderLinkedText(cell)}
                           </td>
                         ),
                       )}
@@ -1671,8 +1792,9 @@ function NativeCourseContent({
             >
               {renderHighlightedText(block.text, `paragraph-${index}`)}
             </p>
-          ),
-        )}
+          )
+          );
+        })}
       </div>
     </section>
   );
