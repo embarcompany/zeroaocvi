@@ -1585,9 +1585,38 @@ function NativeCourseContent({
     "id" | "style"
   > | null>(null);
   const [selectionPosition, setSelectionPosition] = useState({ x: 0, y: 0 });
+  const [toolbarPlacement, setToolbarPlacement] = useState<"above" | "below">("above");
   const [noteEditorOpen, setNoteEditorOpen] = useState(false);
   const [noteDraft, setNoteDraft] = useState("");
   const courseRef = useRef<HTMLElement>(null);
+  const toolbarRef = useRef<HTMLDivElement>(null);
+  const [copyFeedback, setCopyFeedback] = useState(false);
+
+  const closeSelectionTools = () => {
+    setSelectedText("");
+    setSelectedMark(null);
+    setNoteEditorOpen(false);
+    setNoteDraft("");
+    window.getSelection()?.removeAllRanges();
+  };
+
+  const copySelectedText = async () => {
+    if (!selectedText) return;
+    try {
+      await navigator.clipboard.writeText(selectedText);
+    } catch {
+      const textarea = document.createElement("textarea");
+      textarea.value = selectedText;
+      textarea.style.position = "fixed";
+      textarea.style.opacity = "0";
+      document.body.append(textarea);
+      textarea.select();
+      document.execCommand("copy");
+      textarea.remove();
+    }
+    setCopyFeedback(true);
+    window.setTimeout(() => setCopyFeedback(false), 1600);
+  };
 
   useEffect(() => {
     let active = true;
@@ -1668,6 +1697,15 @@ function NativeCourseContent({
     );
   };
   const renderMarkedText = (text: string, blockId: string) => {
+    const resolveRange = <T extends { text?: string; quote?: string; start: number; end: number }>(item: T) => {
+      const quote = item.text || item.quote || "";
+      if (item.start >= 0 && item.end <= text.length && text.slice(item.start, item.end) === quote)
+        return { ...item, start: item.start, end: item.end };
+      const recoveredStart = quote ? text.indexOf(quote) : -1;
+      return recoveredStart >= 0
+        ? { ...item, start: recoveredStart, end: recoveredStart + quote.length }
+        : null;
+    };
     const ranges = textMarks
       .filter(
         (item) =>
@@ -1678,14 +1716,13 @@ function NativeCourseContent({
           item.end <= text.length &&
           item.start < item.end,
       )
-      .map((item) => ({ ...item, start: item.start!, end: item.end! }));
+      .map((item) => resolveRange({ ...item, start: item.start!, end: item.end! }))
+      .filter((item): item is TextMark & { start: number; end: number } => Boolean(item));
     const notes = studyNotes.filter(
-      (item) =>
-        item.blockId === blockId &&
-        item.start >= 0 &&
-        item.end <= text.length &&
-        item.start < item.end,
-    );
+      (item) => item.blockId === blockId && item.start >= 0 && item.end > item.start,
+    )
+      .map((item) => resolveRange(item))
+      .filter((item): item is StudyNote => Boolean(item));
     if (!ranges.length && !notes.length) return text;
 
     const boundaries = Array.from(
@@ -1721,6 +1758,7 @@ function NativeCourseContent({
               x: Math.min(Math.max(rect.left + rect.width / 2, 118), window.innerWidth - 118),
               y: rect.top > 76 ? rect.top - 10 : rect.bottom + 10,
             });
+            setToolbarPlacement(rect.top > 76 ? "above" : "below");
             const selectionStart = note?.start ?? start;
             const selectionEnd = note?.end ?? end;
             setSelectedText(text.slice(selectionStart, selectionEnd));
@@ -1748,6 +1786,7 @@ function NativeCourseContent({
         : selection?.anchorNode?.parentElement;
     if (
       !selection?.anchorNode ||
+      !selection.rangeCount ||
       !anchorElement?.closest(".native-course") ||
       text.length < 3 ||
       text.length > 320
@@ -1769,6 +1808,7 @@ function NativeCourseContent({
       ),
       y: rect.top > 76 ? rect.top - 10 : rect.bottom + 10,
     });
+    setToolbarPlacement(rect.top > 76 ? "above" : "below");
     const blockText = block.textContent || "";
     setSelectedText(text);
     setSelectedMark({
@@ -1804,6 +1844,27 @@ function NativeCourseContent({
     };
   });
 
+  useEffect(() => {
+    const handlePointerDown = (event: PointerEvent) => {
+      const target = event.target as Node;
+      if (
+        selectedText &&
+        !toolbarRef.current?.contains(target) &&
+        !(target instanceof Element && target.closest(".text-mark"))
+      )
+        closeSelectionTools();
+    };
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") closeSelectionTools();
+    };
+    document.addEventListener("pointerdown", handlePointerDown);
+    window.addEventListener("keydown", handleEscape);
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      window.removeEventListener("keydown", handleEscape);
+    };
+  }, [selectedText]);
+
   if (blocks === null)
     return (
       <section className="native-course">
@@ -1824,6 +1885,25 @@ function NativeCourseContent({
       </section>
     );
 
+  const selectedStyles = selectedMark
+    ? textMarks
+        .filter(
+          (item) =>
+            item.blockId === selectedMark.blockId &&
+            item.start === selectedMark.start &&
+            item.end === selectedMark.end,
+        )
+        .map((item) => item.style)
+    : [];
+  const selectedNote = selectedMark
+    ? studyNotes.find(
+        (item) =>
+          item.blockId === selectedMark.blockId &&
+          item.start === selectedMark.start &&
+          item.end === selectedMark.end,
+      )
+    : undefined;
+
   return (
     <section className="native-course" ref={courseRef}>
       <div className="native-course-head">
@@ -1836,7 +1916,12 @@ function NativeCourseContent({
       </div>
       {selectedText && (
         <div
-          className="selection-tools"
+          className={
+            toolbarPlacement === "below"
+              ? "selection-tools selection-tools-below"
+              : "selection-tools"
+          }
+          ref={toolbarRef}
           role="toolbar"
           aria-label="Formatar texto selecionado"
           style={{ left: selectionPosition.x, top: selectionPosition.y }}
@@ -1853,12 +1938,10 @@ function NativeCourseContent({
               type="button"
               title={label}
               aria-label={label}
+              aria-pressed={selectedStyles.includes(style)}
               onMouseDown={(event) => event.preventDefault()}
               onClick={() => {
                 if (selectedMark) onToggleTextMark(selectedMark, style);
-                setSelectedText("");
-                setSelectedMark(null);
-                window.getSelection()?.removeAllRanges();
               }}
             >
               <Icon size={15} strokeWidth={2.2} />
@@ -1869,6 +1952,7 @@ function NativeCourseContent({
             title="Adicionar anotação"
             aria-label="Adicionar anotação"
             onMouseDown={(event) => event.preventDefault()}
+            aria-pressed={noteEditorOpen}
             onClick={() => setNoteEditorOpen((open) => !open)}
           >
             <MessageSquarePlus size={15} strokeWidth={2.2} />
@@ -1878,7 +1962,7 @@ function NativeCourseContent({
             title="Copiar trecho"
             aria-label="Copiar trecho"
             onMouseDown={(event) => event.preventDefault()}
-            onClick={() => selectedText && navigator.clipboard?.writeText(selectedText)}
+            onClick={copySelectedText}
           >
             <Copy size={15} strokeWidth={2.2} />
           </button>
@@ -1889,9 +1973,8 @@ function NativeCourseContent({
             onMouseDown={(event) => event.preventDefault()}
             onClick={() => {
               if (selectedMark) onRemoveTextMarks(selectedMark);
-              setSelectedText("");
-              setSelectedMark(null);
-              window.getSelection()?.removeAllRanges();
+              setNoteDraft("");
+              setNoteEditorOpen(false);
             }}
           >
             <Eraser size={15} strokeWidth={2.2} />
@@ -1900,8 +1983,7 @@ function NativeCourseContent({
             type="button"
             onMouseDown={(event) => event.preventDefault()}
             onClick={() => {
-              setSelectedText("");
-              setSelectedMark(null);
+              closeSelectionTools();
             }}
             aria-label="Cancelar seleção"
           >
@@ -1926,12 +2008,25 @@ function NativeCourseContent({
               />
               <div>
                 <button type="submit">Salvar nota</button>
+                {selectedNote && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onRemoveStudyNote(selectedNote.id);
+                      setNoteDraft("");
+                      setNoteEditorOpen(false);
+                    }}
+                  >
+                    Excluir
+                  </button>
+                )}
                 <button type="button" onClick={() => setNoteEditorOpen(false)}>
                   Cancelar
                 </button>
               </div>
             </form>
           )}
+          {copyFeedback && <span className="copy-feedback" role="status">Trecho copiado</span>}
         </div>
       )}
       <div className="native-blocks">
