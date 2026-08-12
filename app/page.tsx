@@ -1886,6 +1886,113 @@ function NativeCourseContent({
       );
     });
   };
+  const renderEditorialBlocks = () => {
+    if (!blocks) return null;
+    const output: React.ReactNode[] = [];
+    const isListItem = (text: string) => /^\s*[●•☐✔✓]/.test(text);
+    const listText = (text: string) => text.replace(/^\s*[●•☐✔✓]\s*/, "");
+    const calloutTone = (title: string) => {
+      const normalized = title.toLocaleLowerCase("pt-BR");
+      if (normalized.includes("atenção") || normalized.includes("não confunda")) return "warning";
+      if (normalized.includes("dica")) return "tip";
+      if (normalized.includes("importante") || normalized.includes("regra")) return "important";
+      return "info";
+    };
+
+    for (let index = 0; index < blocks.length; index += 1) {
+      const block = blocks[index];
+      if (block.type === "paragraph" && isListItem(block.text)) {
+        const items: Array<{ text: string; index: number }> = [];
+        while (index < blocks.length) {
+          const listBlock = blocks[index];
+          if (listBlock.type !== "paragraph" || !isListItem(listBlock.text)) break;
+          items.push({
+            text: listBlock.text,
+            index,
+          });
+          index += 1;
+        }
+        index -= 1;
+        const checklistLike = items.some((item) => /^\s*[☐✔✓]/.test(item.text));
+        output.push(
+          <ul className={checklistLike ? "editorial-checklist" : "editorial-list"} key={`list-${items[0].index}`}>
+            {items.map((item) => (
+              <li data-reader-block={`list-${item.index}`} key={`list-item-${item.index}`}>
+                {renderMarkedText(listText(item.text), `list-${item.index}`)}
+              </li>
+            ))}
+          </ul>,
+        );
+        continue;
+      }
+      if (block.type === "table" && block.rows.length === 1 && block.rows[0].length === 1) {
+        const cell = block.rows[0][0];
+        const lines = cell.split("\n").filter(Boolean);
+        const title = lines.shift() || "Nota";
+        const body = lines.join("\n");
+        const summary = /resumo dos principais|checklist do conteúdo estudado/i.test(title);
+        output.push(
+          <section
+            className={summary ? "editorial-summary" : `editorial-callout ${calloutTone(title)}`}
+            data-reader-block={`table-${index}-0-0`}
+            key={`single-table-${index}`}
+          >
+            <p>{summary ? "EM RESUMO" : title}</p>
+            <div>{body}</div>
+          </section>,
+        );
+        continue;
+      }
+      if (block.type === "table") {
+        output.push(
+          <div className="native-table-wrap editorial-table" key={`table-${index}`}>
+            <table>
+              <tbody>
+                {block.rows.map((row, rowIndex) => (
+                  <tr key={`${index}-${rowIndex}`}>
+                    {row.map((cell, cellIndex) => {
+                      const blockId = `table-${index}-${rowIndex}-${cellIndex}`;
+                      const Tag = rowIndex === 0 ? "th" : "td";
+                      return (
+                        <Tag data-reader-block={blockId} key={blockId}>
+                          {renderMarkedText(cell, blockId)}
+                        </Tag>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>,
+        );
+        continue;
+      }
+      if (block.type === "heading") {
+        output.push(
+          <div className="native-heading" key={`heading-${index}`}>
+            {renderHeading(block.text, block.level)}
+            {block.level === 2 && /^\d+\.\d+/.test(block.text) && (
+              <figure className={`topic-visual topic-visual-${index % 4}`}>
+                <img
+                  src={moduleVisuals[module - 1]}
+                  alt={`Ilustração editorial para ${block.text}`}
+                  loading="lazy"
+                />
+              </figure>
+            )}
+          </div>,
+        );
+        continue;
+      }
+      const blockId = `paragraph-${index}`;
+      output.push(
+        <p className="native-paragraph" data-reader-block={blockId} key={blockId}>
+          {renderMarkedText(block.text, blockId)}
+        </p>,
+      );
+    }
+    return output;
+  };
   const captureSelection = () => {
     const selection = window.getSelection();
     const text = selection?.toString() || "";
@@ -2144,58 +2251,7 @@ function NativeCourseContent({
         </div>
       )}
       <div className="native-blocks">
-        {blocks.map((block, index) =>
-          block.type === "table" ? (
-            <div className="native-table-wrap" key={`table-${index}`}>
-              <table>
-                <tbody>
-                  {block.rows.map((row, rowIndex) => (
-                    <tr key={`${index}-${rowIndex}`}>
-                      {row.map((cell, cellIndex) =>
-                        rowIndex === 0 ? (
-                          <th
-                            key={`${index}-${rowIndex}-${cellIndex}`}
-                            data-reader-block={`table-${index}-${rowIndex}-${cellIndex}`}
-                          >
-                            {renderMarkedText(cell, `table-${index}-${rowIndex}-${cellIndex}`)}
-                          </th>
-                        ) : (
-                          <td
-                            key={`${index}-${rowIndex}-${cellIndex}`}
-                            data-reader-block={`table-${index}-${rowIndex}-${cellIndex}`}
-                          >
-                            {renderMarkedText(cell, `table-${index}-${rowIndex}-${cellIndex}`)}
-                          </td>
-                        ),
-                      )}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ) : block.type === "heading" ? (
-            <div className="native-heading" key={`heading-${index}`}>
-              {renderHeading(block.text, block.level)}
-              {block.level === 2 && /^\d+\.\d+/.test(block.text) && (
-                <figure className={`topic-visual topic-visual-${index % 4}`}>
-                  <img
-                    src={moduleVisuals[module - 1]}
-                    alt={`Ilustração editorial para ${block.text}`}
-                    loading="lazy"
-                  />
-                </figure>
-              )}
-            </div>
-          ) : (
-            <p
-              className="native-paragraph"
-              data-reader-block={`paragraph-${index}`}
-              key={`paragraph-${index}`}
-            >
-              {renderMarkedText(block.text, `paragraph-${index}`)}
-            </p>
-          ),
-        )}
+        {renderEditorialBlocks()}
       </div>
     </section>
   );
