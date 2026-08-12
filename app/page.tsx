@@ -36,6 +36,7 @@ import {
   downloadSummaryPdf,
   downloadTimelinePdf,
 } from "./lib/pdf";
+import { ModuleHeader } from "./components/module-header";
 
 const modules = [
   ["Modalidades de viagem de animais", "PETC, AVIH, AVI e situações especiais"],
@@ -1441,11 +1442,7 @@ function ModulePage({
   const [title, subtitle] = module;
   return (
     <>
-      <div className="lesson-meta">
-        <span>MÓDULO {number}</span>
-        <span>{subtitle}</span>
-      </div>
-      <h1>{title}</h1>
+      <ModuleHeader number={number} title={title} subtitle={subtitle} />
       {number === 1 ? (
         <ModalidadesContent />
       ) : number === 2 ? (
