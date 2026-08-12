@@ -90,8 +90,8 @@
 
 .checklist label,
 .compact-checklist label {
-  min-height: 68px;
-  padding: 17px 18px;
+  min-height: 68px !important;
+  padding: 17px 18px !important;
   border-radius: var(--control-radius);
   line-height: 1.5;
 }
@@ -111,21 +111,21 @@
 .checklist input[type="checkbox"],
 .stage-complete input[type="checkbox"],
 .validation-grid input[type="checkbox"] {
-  width: 20px;
-  height: 20px;
-  flex: 0 0 20px;
-  border-radius: 6px;
+  width: 20px !important;
+  height: 20px !important;
+  flex: 0 0 20px !important;
+  border-radius: 6px !important;
 }
 
 .checklist-bento > .checklist {
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 14px;
-  padding: 18px;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)) !important;
+  gap: 14px !important;
+  padding: 18px !important;
 }
 
 .checklist-bento > .checklist label {
-  min-height: 76px;
-  padding: 18px;
+  min-height: 76px !important;
+  padding: 18px !important;
 }
 
 .tool-section,
@@ -187,18 +187,18 @@
 @media (max-width: 700px) {
   .checklist-bento > .checklist,
   .compact-checklist {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr !important;
   }
 
   .checklist-bento > .checklist {
-    gap: 10px;
-    padding: 14px;
+    gap: 10px !important;
+    padding: 14px !important;
   }
 
   .checklist label,
   .checklist-bento > .checklist label,
   .compact-checklist label {
-    min-height: 60px;
-    padding: 16px;
+    min-height: 60px !important;
+    padding: 16px !important;
   }
 }
