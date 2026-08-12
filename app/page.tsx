@@ -493,12 +493,25 @@ export default function Home() {
     setProfilesReady(true);
   }, []);
   useEffect(() => {
-    const match =
-      window.location.hash.match(/^#module-(\d+)$/) ||
-      window.location.hash.match(/^#lesson-(\d+)-\d+$/);
-    if (!match) return;
-    const index = Number(match[1]) - 1;
-    if (index >= 0 && index < modules.length) setActive(index);
+    const syncLocation = () => {
+      const toolMatch = window.location.hash.match(/^#tool-(checklist|cronograma|quadro)$/);
+      if (toolMatch) {
+        setTool(toolMatch[1] as Exclude<Tool, null>);
+        return;
+      }
+      const match =
+        window.location.hash.match(/^#module-(\d+)$/) ||
+        window.location.hash.match(/^#lesson-(\d+)-\d+$/);
+      if (!match) return;
+      const index = Number(match[1]) - 1;
+      if (index >= 0 && index < modules.length) {
+        setTool(null);
+        setActive(index);
+      }
+    };
+    syncLocation();
+    window.addEventListener("hashchange", syncLocation);
+    return () => window.removeEventListener("hashchange", syncLocation);
   }, []);
   useEffect(() => {
     if (!profilesReady) return;
@@ -636,8 +649,28 @@ export default function Home() {
   };
   const selectTool = (nextTool: Exclude<Tool, null>) => {
     setTool(nextTool);
+    window.history.replaceState(null, "", `#tool-${nextTool}`);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
+  const clearChecklist = () =>
+    updateActiveProfile((profile) => ({
+      ...profile,
+      checks: checklist.map(() => false),
+      travel: { ...createProfile(profile.name).travel },
+    }));
+  const clearTimeline = () =>
+    updateActiveProfile((profile) => ({
+      ...profile,
+      timeline: {},
+      technicalChecks: technicalChecklist.map(() => false),
+      validationChecks: validationDocuments.map(() => false),
+      validationNotes: {},
+      travel: { ...createProfile(profile.name).travel },
+    }));
+  const clearSummary = () =>
+    updateActiveProfile((profile) => ({ ...profile, summary: { ...emptySummary } }));
+  const clearAnnotations = () =>
+    updateActiveProfile((profile) => ({ ...profile, annotations: {} }));
   const createNewProfile = () => {
     const name = profileName.trim();
     if (!name) return;
@@ -1005,12 +1038,13 @@ export default function Home() {
                 <b>FERRAMENTAS</b>
                 <span>3 recursos</span>
               </div>
-              <button
+              <a
                 className={
                   tool === "checklist"
                     ? "tool-link tool-checklist selected"
                     : "tool-link tool-checklist"
                 }
+                href="#tool-checklist"
                 onClick={() => selectTool("checklist")}
               >
                 <span className="tool-icon-wrap">
@@ -1020,13 +1054,14 @@ export default function Home() {
                   <strong>Checklist</strong>
                   <small>Passageiro pet</small>
                 </span>
-              </button>
-              <button
+              </a>
+              <a
                 className={
                   tool === "cronograma"
                     ? "tool-link tool-cronograma selected"
                     : "tool-link tool-cronograma"
                 }
+                href="#tool-cronograma"
                 onClick={() => selectTool("cronograma")}
               >
                 <span className="tool-icon-wrap">
@@ -1036,13 +1071,14 @@ export default function Home() {
                   <strong>Cronograma</strong>
                   <small>Planejamento sanitário</small>
                 </span>
-              </button>
-              <button
+              </a>
+              <a
                 className={
                   tool === "quadro"
                     ? "tool-link tool-quadro selected"
                     : "tool-link tool-quadro"
                 }
+                href="#tool-quadro"
                 onClick={() => selectTool("quadro")}
               >
                 <span className="tool-icon-wrap">
@@ -1052,6 +1088,12 @@ export default function Home() {
                   <strong>Quadro de CVI</strong>
                   <small>Regras por destino</small>
                 </span>
+              </a>
+            </section>
+            <section className="sidebar-annotations" aria-label="Minhas anotações">
+              <div className="tools-heading"><b>MINHAS ANOTAÇÕES</b><span>{Object.values(activeProfile.annotations).filter(Boolean).length}</span></div>
+              <button type="button" className="clear-annotations" onClick={clearAnnotations} disabled={!Object.values(activeProfile.annotations).some(Boolean)}>
+                Limpar todas
               </button>
             </section>
           </div>
@@ -1180,7 +1222,8 @@ export default function Home() {
               onTravelChange={(travel) =>
                 updateActiveProfile((profile) => ({ ...profile, travel }))
               }
-              onExport={() => downloadChecklistPdf(activeProfile, checklist)}
+              onExport={() => downloadChecklistPdf(activeProfile, checklist, attentionPoints)}
+              onClear={clearChecklist}
             />
           ) : tool === "cronograma" ? (
             <Cronograma
@@ -1213,7 +1256,8 @@ export default function Home() {
                   validationNotes,
                 }))
               }
-              onExport={() => downloadTimelinePdf(activeProfile, stages)}
+              onExport={() => downloadTimelinePdf(activeProfile, stages, technicalChecklist, activeProfile.technicalChecks)}
+              onClear={clearTimeline}
             />
           ) : tool === "quadro" ? (
             <Quadro
@@ -1221,7 +1265,8 @@ export default function Home() {
               onChange={(summary) =>
                 updateActiveProfile((profile) => ({ ...profile, summary }))
               }
-              onExport={() => downloadSummaryPdf(activeProfile)}
+              onExport={() => downloadSummaryPdf(activeProfile, cviDestinations)}
+              onClear={clearSummary}
             />
           ) : (
             <ModulePage
@@ -1325,6 +1370,9 @@ function ModulePage({
         number={number}
         completed={moduleCompleted}
         onToggle={onToggleModule}
+        lessons={lessons}
+        completedLessons={completedLessons}
+        onToggleLesson={onToggleLesson}
       />
       <nav className="lesson-footer" aria-label="Navegação entre módulos">
         <button type="button" onClick={onPrevious} disabled={!onPrevious}>
@@ -1345,10 +1393,16 @@ function ModuleRecap({
   number,
   completed,
   onToggle,
+  lessons,
+  completedLessons,
+  onToggleLesson,
 }: {
   number: number;
   completed: boolean;
   onToggle: () => void;
+  lessons: readonly string[];
+  completedLessons: Record<string, boolean>;
+  onToggleLesson: (lesson: string) => void;
 }) {
   const recaps = [
     [
@@ -1378,30 +1432,24 @@ function ModuleRecap({
   ][number - 1];
   return (
     <section className="module-recap">
-      <p>
-        <BookOpenCheck size={15} strokeWidth={2.4} /> VOCÊ CHEGOU AO FIM DO
-        MÓDULO
-      </p>
-      <h2>{recaps[0]}</h2>
-      <span>{recaps[1]}</span>
-      <button
-        type="button"
-        className={
-          completed ? "module-finish-button done" : "module-finish-button"
-        }
-        onClick={onToggle}
-        aria-pressed={completed}
-      >
-        {completed ? (
-          <>
-            <Check size={16} strokeWidth={3} /> Módulo concluído
-          </>
-        ) : (
-          <>
-            <Check size={16} strokeWidth={3} /> Concluir módulo
-          </>
-        )}
-      </button>
+      <div className="module-recap-copy">
+        <p><BookOpenCheck size={15} strokeWidth={2.4} /> VOCÊ CHEGOU AO FIM DO MÓDULO</p>
+        <h2>{recaps[0]}</h2>
+        <span>{recaps[1]}</span>
+      </div>
+      <div className="module-recap-actions">
+        <div className="module-recap-checklist" aria-label="Checklist de fechamento do módulo">
+          {lessons.map((lesson) => {
+            const done = Boolean(completedLessons[`${number - 1}:${lesson}`]);
+            return <button type="button" key={lesson} className={done ? "done" : ""} onClick={() => onToggleLesson(lesson)} aria-pressed={done}>
+              <span><Check size={11} strokeWidth={3} /></span>{lesson}
+            </button>;
+          })}
+        </div>
+        <button type="button" className={completed ? "module-finish-button done" : "module-finish-button"} onClick={onToggle} aria-pressed={completed}>
+          <Check size={16} strokeWidth={3} /> {completed ? "Módulo concluído" : "Concluir módulo"}
+        </button>
+      </div>
     </section>
   );
 }
@@ -1444,6 +1492,36 @@ function EmailTemplateEmbed({ content }: { content: string }) {
       </div>
     </section>
   );
+}
+
+function CopyTableButton({ rows }: { rows: string[][] }) {
+  const [copied, setCopied] = useState(false);
+  const copy = async () => {
+    const text = rows.map((row) => row.join("\t")).join("\n");
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      const textarea = document.createElement("textarea");
+      textarea.value = text;
+      textarea.style.position = "fixed";
+      textarea.style.opacity = "0";
+      document.body.append(textarea);
+      textarea.select();
+      document.execCommand("copy");
+      textarea.remove();
+    }
+    setCopied(true);
+    window.setTimeout(() => setCopied(false), 1600);
+  };
+  return <button type="button" className="copy-table" onClick={copy} aria-label="Copiar tabela" title="Copiar tabela">
+    {copied ? <Check size={15} strokeWidth={2.8} /> : <Copy size={15} strokeWidth={2.2} />}
+    <span>{copied ? "Copiado" : "Copiar"}</span>
+  </button>;
+}
+
+function ProcessFlow({ content }: { content: string }) {
+  const steps = content.split(/\\\s*⬇️\s*|\s*⬇️\s*/).map((item) => item.trim()).filter(Boolean);
+  return <ol className="process-flow">{steps.map((step, index) => <li key={`${index}-${step}`}><span>{String(index + 1).padStart(2, "0")}</span><p>{renderLinkedText(step)}</p></li>)}</ol>;
 }
 
 function NativeCourseContent({
@@ -1536,7 +1614,7 @@ function NativeCourseContent({
               </>
             ) : (
               <>
-                <Check size={14} strokeWidth={3} /> Marcar tópico
+                <Check size={14} strokeWidth={3} /> Marcar como concluído
               </>
             )}
           </button>
@@ -1751,6 +1829,7 @@ function NativeCourseContent({
           return (
           block.type === "table" ? (
             <div className="native-table-wrap" key={`table-${index}`}>
+              <CopyTableButton rows={block.rows} />
               <table>
                 <tbody>
                   {block.rows.map((row, rowIndex) => (
@@ -1758,7 +1837,12 @@ function NativeCourseContent({
                       {row.map((cell, cellIndex) =>
                         rowIndex === 0 ? (
                           <th key={`${index}-${rowIndex}-${cellIndex}`}>
-                            {renderLinkedText(cell)}
+                            {renderLinkedText(
+                              cell ||
+                                (block.rows[0][0] === "Serviço" && cellIndex === 2
+                                  ? "Margem máxima (sugestão)"
+                                  : ""),
+                            )}
                           </th>
                         ) : (
                           <td key={`${index}-${rowIndex}-${cellIndex}`}>
@@ -1784,6 +1868,8 @@ function NativeCourseContent({
                 </figure>
               )}
             </div>
+          ) : block.type === "paragraph" && /Fluxo Resumido -- Emissão do CVI Presencial/.test(blocks[index - 1]?.text || "") ? (
+            <ProcessFlow content={block.text} key={`flow-${index}`} />
           ) : (
             <p
               className="native-paragraph"
@@ -2632,12 +2718,14 @@ function Checklist({
   travel,
   onTravelChange,
   onExport,
+  onClear,
 }: {
   checks: boolean[];
   setChecks: (values: boolean[]) => void;
   travel: TravelData;
   onTravelChange: (value: TravelData) => void;
   onExport: () => void;
+  onClear: () => void;
 }) {
   const completed = checks.filter(Boolean).length;
   const update = (field: keyof TravelData, value: string) =>
@@ -2739,12 +2827,7 @@ function Checklist({
           ))}
         </div>
         <div className="tool-actions">
-          <button
-            className="clear"
-            onClick={() => setChecks(checklist.map(() => false))}
-          >
-            Limpar checklist
-          </button>
+          <button className="clear" onClick={onClear}>Limpar informações</button>
           <button className="export-pdf" onClick={onExport}>
             Baixar PDF personalizado
           </button>
@@ -2778,6 +2861,7 @@ function Cronograma({
   validationNotes,
   setValidationNotes,
   onExport,
+  onClear,
 }: {
   value: Record<string, StageData>;
   onChange: (value: Record<string, StageData>) => void;
@@ -2790,6 +2874,7 @@ function Cronograma({
   validationNotes: Record<string, string>;
   setValidationNotes: (value: Record<string, string>) => void;
   onExport: () => void;
+  onClear: () => void;
 }) {
   const updateStage = (stage: string, update: Partial<StageData>) =>
     onChange({
@@ -2942,6 +3027,7 @@ function Cronograma({
           </div>
         </section>
         <div className="tool-actions">
+          <button className="clear" onClick={onClear}>Limpar informações</button>
           <button className="export-pdf" onClick={onExport}>
             Baixar PDF personalizado
           </button>
@@ -2955,10 +3041,12 @@ function Quadro({
   value,
   onChange,
   onExport,
+  onClear,
 }: {
   value: SummaryData;
   onChange: (value: SummaryData) => void;
   onExport: () => void;
+  onClear: () => void;
 }) {
   const update = (field: keyof SummaryData, nextValue: string) =>
     onChange({ ...value, [field]: nextValue });
@@ -3064,6 +3152,7 @@ function Quadro({
           </div>
         </section>
         <div className="tool-actions">
+          <button className="clear" onClick={onClear}>Limpar informações</button>
           <button className="export-pdf" onClick={onExport}>
             Baixar PDF personalizado
           </button>
@@ -3090,6 +3179,12 @@ function DestinationTable({ rows }: { rows: readonly (readonly string[])[] }) {
     );
   return (
     <div className="destination-table-wrap">
+      <CopyTableButton
+        rows={[
+          ["Destino", "CVI online", "Endosso", "Presencial", "Import Permit", "Notificação"],
+          ...rows.map((row) => [...row]),
+        ]}
+      />
       <table>
         <thead>
           <tr>

@@ -1,65 +1,54 @@
 import { jsPDF } from "jspdf";
 
-export type PdfStage = { date: string; status: string };
+export type PdfStage = { date: string; status: string; completed?: boolean };
 export type PdfSummary = { destination: string; source: string; cvi: string; importPermit: string; arrivalNotice: string; notes: string };
-export type PdfProfile = { name: string; checks: boolean[]; timeline: Record<string, PdfStage>; summary: PdfSummary };
+export type PdfTravel = { tutor?: string; pet?: string; speciesBreed?: string; destination?: string; date?: string; airline?: string; modality?: string; passenger?: string; addressBrazil?: string; addressAbroad?: string; phoneBrazil?: string; phoneAbroad?: string };
+export type PdfProfile = { name: string; checks: boolean[]; timeline: Record<string, PdfStage>; summary: PdfSummary; travel?: PdfTravel; technicalChecks?: boolean[] };
 
 const teal = [5, 67, 74] as const;
 const turquoise = [0, 209, 226] as const;
-const pale = [244, 250, 248] as const;
-const lime = [198, 215, 131] as const;
+const soft = [244, 250, 248] as const;
+const line = [216, 232, 229] as const;
 const pageWidth = 210;
-const margin = 18;
+const margin = 16;
 
 function safeFilePart(value: string) { return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9]+/g, "-").replace(/(^-|-$)/g, "").toLowerCase() || "processo"; }
-function today() { return new Intl.DateTimeFormat("pt-BR").format(new Date()); }
-function docBase(title: string, profile: PdfProfile) {
+function dateLabel(value = "") { return value ? new Intl.DateTimeFormat("pt-BR", { timeZone: "UTC" }).format(new Date(`${value}T00:00:00`)) : ""; }
+function base(title: string, profile: PdfProfile) {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
-  doc.setFillColor(...teal); doc.rect(0, 0, pageWidth, 42, "F");
-  doc.setFillColor(...turquoise); doc.circle(188, 10, 24, "F");
-  doc.setTextColor(255, 255, 255); doc.setFont("helvetica", "bold"); doc.setFontSize(19); doc.text("embarpet", margin, 17);
-  doc.setFontSize(8); doc.text("DO ZERO AO CVI - MATERIAL DE APOIO", margin, 25);
-  doc.setFontSize(18); doc.text(title, margin, 35);
-  doc.setTextColor(...teal); doc.setFontSize(9); doc.setFont("helvetica", "bold"); doc.text("PROCESSO", margin, 54);
-  doc.setFontSize(13); doc.text(profile.name, margin, 61);
-  doc.setDrawColor(216, 232, 229); doc.line(margin, 67, pageWidth - margin, 67);
+  doc.setFillColor(...teal); doc.rect(0, 0, pageWidth, 39, "F");
+  doc.setFillColor(...turquoise); doc.circle(194, 7, 24, "F");
+  doc.setTextColor(255, 255, 255); doc.setFont("helvetica", "bold"); doc.setFontSize(20); doc.text("embarpet", margin, 16);
+  doc.setFontSize(7.5); doc.text("DO ZERO AO CVI · MATERIAL DE APOIO", margin, 23);
+  doc.setFontSize(15); doc.text(title, margin, 32);
+  doc.setTextColor(...teal); doc.setFontSize(8); doc.text("PROCESSO", margin, 49);
+  doc.setFontSize(12); doc.text(profile.name, margin, 56);
+  doc.setDrawColor(...line); doc.line(margin, 62, pageWidth - margin, 62);
   return doc;
 }
-function footer(doc: jsPDF) {
-  const height = doc.internal.pageSize.getHeight();
-  doc.setDrawColor(216, 232, 229); doc.line(margin, height - 15, pageWidth - margin, height - 15);
-  doc.setTextColor(94, 127, 130); doc.setFont("helvetica", "normal"); doc.setFontSize(7);
-  doc.text(`Gerado em ${today()} - Confirme sempre requisitos sanitarios e operacionais nas fontes vigentes.`, margin, height - 9);
-  doc.text("Embarpet", pageWidth - margin, height - 9, { align: "right" });
-}
-function sectionTitle(doc: jsPDF, label: string, y: number) { doc.setTextColor(...turquoise); doc.setFont("helvetica", "bold"); doc.setFontSize(8); doc.text(label.toUpperCase(), margin, y); return y + 8; }
-function paragraph(doc: jsPDF, text: string, y: number, width = pageWidth - margin * 2) { doc.setTextColor(...teal); doc.setFont("helvetica", "normal"); doc.setFontSize(10); const lines = doc.splitTextToSize(text || "Não informado", width); doc.text(lines, margin, y); return y + lines.length * 5 + 5; }
-function save(doc: jsPDF, kind: string, profile: PdfProfile) { footer(doc); doc.save(`embarpet-${kind}-${safeFilePart(profile.name)}.pdf`); }
+function footer(doc: jsPDF) { const h = doc.internal.pageSize.getHeight(); doc.setDrawColor(...line); doc.line(margin, h - 13, pageWidth - margin, h - 13); doc.setTextColor(94,127,130); doc.setFont("helvetica","normal"); doc.setFontSize(7); doc.text("Material de apoio · confirme requisitos sanitários e operacionais nas fontes vigentes.", margin, h - 8); doc.text("Embarpet", pageWidth - margin, h - 8, { align: "right" }); }
+function section(doc: jsPDF, label: string, y: number) { doc.setTextColor(...turquoise); doc.setFont("helvetica", "bold"); doc.setFontSize(8); doc.text(label.toUpperCase(), margin, y); return y + 7; }
+function newPage(doc: jsPDF, label: string) { footer(doc); doc.addPage(); return section(doc, label, 20); }
+function lineField(doc: jsPDF, label: string, value: string, x: number, y: number, width: number) { doc.setTextColor(...teal); doc.setFont("helvetica","bold"); doc.setFontSize(7.5); doc.text(label.toUpperCase(), x, y); doc.setDrawColor(...line); doc.line(x, y + 10, x + width, y + 10); if (value) { doc.setFont("helvetica","normal"); doc.setFontSize(9); doc.text(value, x, y + 7); } }
+function box(doc: jsPDF, label: string, value: string, y: number, height = 17) { doc.setFillColor(...soft); doc.roundedRect(margin, y, pageWidth - margin * 2, height, 3, 3, "F"); doc.setTextColor(...teal); doc.setFont("helvetica","bold"); doc.setFontSize(8); doc.text(label, margin + 6, y + 6); if (value) { doc.setFont("helvetica","normal"); doc.setFontSize(9.5); const lines = doc.splitTextToSize(value, pageWidth - margin * 2 - 12); doc.text(lines, margin + 6, y + 12); } else { doc.setDrawColor(...line); doc.line(margin + 6, y + height - 5, pageWidth - margin - 6, y + height - 5); } return y + height + 6; }
+function save(doc: jsPDF, name: string, profile: PdfProfile) { footer(doc); doc.save(`embarpet-${name}-${safeFilePart(profile.name)}.pdf`); }
+function travelFields(doc: jsPDF, profile: PdfProfile, y: number) { const t = profile.travel || {}; y = section(doc, "Dados da viagem", y); const fields: Array<[string,string]> = [["Tutor",t.tutor || ""],["Pet",t.pet || ""],["Destino",t.destination || ""],["Data da viagem",dateLabel(t.date)],["Modalidade",t.modality || ""],["Companhia aérea",t.airline || ""]]; fields.forEach(([label,value], index) => { const col = index % 2; lineField(doc,label,value,margin + col * 90,y + Math.floor(index / 2) * 17,82); }); return y + 58; }
 
-export function downloadChecklistPdf(profile: PdfProfile, items: string[]) {
-  const doc = docBase("Checklist Passageiro Pet", profile); let y = sectionTitle(doc, "Conferencia antes do embarque", 80);
-  items.forEach((item, index) => { const done = Boolean(profile.checks[index]); doc.setFillColor(...(done ? turquoise : pale)); doc.roundedRect(margin, y - 4, 5, 5, 1, 1, "F"); if (done) { doc.setTextColor(...teal); doc.setFont("helvetica", "bold"); doc.setFontSize(7); doc.text("OK", margin + 2.5, y, { align: "center" }); } doc.setTextColor(...teal); doc.setFont("helvetica", done ? "bold" : "normal"); doc.setFontSize(10); doc.text(item, margin + 10, y); y += 10; });
-  doc.setFillColor(...pale); doc.roundedRect(margin, y + 4, pageWidth - margin * 2, 22, 4, 4, "F"); doc.setTextColor(...teal); doc.setFont("helvetica", "bold"); doc.setFontSize(8); doc.text("LEMBRETE", margin + 8, y + 12); doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.text("A conferencia final deve considerar a rota, a companhia e as exigencias vigentes do destino.", margin + 8, y + 19);
-  save(doc, "checklist", profile);
+export function downloadChecklistPdf(profile: PdfProfile, items: string[], attention: string[] = []) {
+  const doc = base("Checklist de embarque do pet", profile); let y = travelFields(doc, profile, 74); y = section(doc, "Itens obrigatórios", y);
+  items.forEach((item,index) => { if (y > 265) y = newPage(doc, "Itens obrigatórios · continuação"); const done = Boolean(profile.checks[index]); doc.setDrawColor(...line); doc.roundedRect(margin,y - 4,5,5,1,1,"S"); if(done){doc.setFillColor(...turquoise);doc.roundedRect(margin,y-4,5,5,1,1,"F");doc.setTextColor(...teal);doc.setFont("helvetica","bold");doc.setFontSize(6);doc.text("✓",margin+2.5,y-0.2,{align:"center"});} doc.setTextColor(...teal);doc.setFont("helvetica",done?"bold":"normal");doc.setFontSize(9.5);const lines=doc.splitTextToSize(item,155);doc.text(lines,margin+10,y); y += Math.max(8,lines.length*4.5+3); });
+  y = newPage(doc,"Pontos de atenção"); attention.forEach((item,index)=>{ doc.setFillColor(...soft);doc.roundedRect(margin,y-4,pageWidth-margin*2,16,3,3,"F");doc.setTextColor(...turquoise);doc.setFont("helvetica","bold");doc.setFontSize(8);doc.text(String(index+1).padStart(2,"0"),margin+6,y+3);doc.setTextColor(...teal);doc.setFont("helvetica","normal");doc.setFontSize(9);const lines=doc.splitTextToSize(item,155);doc.text(lines,margin+19,y+2);y+=Math.max(20,lines.length*4+8);}); save(doc,"checklist",profile);
 }
 
-export function downloadTimelinePdf(profile: PdfProfile, stages: string[]) {
-  const doc = docBase("Cronograma Sanitario", profile); let y = sectionTitle(doc, "Etapas do processo", 80);
-  stages.forEach((stage, index) => { if (y > 260) { footer(doc); doc.addPage(); y = sectionTitle(doc, "Etapas do processo - continuação", 25); } const data = profile.timeline[stage] || { date: "", status: "Pendente" }; doc.setFillColor(...teal); doc.circle(margin + 4, y - 3, 4, "F"); doc.setTextColor(255, 255, 255); doc.setFont("helvetica", "bold"); doc.setFontSize(7); doc.text(String(index + 1).padStart(2, "0"), margin + 4, y - 1, { align: "center" }); doc.setTextColor(...teal); doc.setFontSize(10); doc.text(stage, margin + 13, y); doc.setFont("helvetica", "normal"); doc.setFontSize(8); doc.text(data.date ? new Intl.DateTimeFormat("pt-BR", { timeZone: "UTC" }).format(new Date(`${data.date}T00:00:00`)) : "Data não definida", 145, y, { align: "right" }); doc.setFillColor(...(data.status === "Concluído" ? turquoise : data.status === "Em andamento" ? lime : pale)); doc.roundedRect(150, y - 6, 42, 8, 3, 3, "F"); doc.setTextColor(...teal); doc.setFont("helvetica", "bold"); doc.setFontSize(7); doc.text(data.status, 171, y - .6, { align: "center" }); doc.setDrawColor(216, 232, 229); doc.line(margin + 13, y + 5, pageWidth - margin, y + 5); y += 15; });
-  save(doc, "cronograma", profile);
+export function downloadTimelinePdf(profile: PdfProfile, stages: string[], technical: string[] = [], technicalChecks: boolean[] = []) {
+  const doc = base("Cronograma sanitário", profile); let y = travelFields(doc, profile, 74); y = section(doc,"Cronograma sanitário",y);
+  stages.forEach((stage,index)=>{if(y>264)y=newPage(doc,"Cronograma sanitário · continuação");const data=profile.timeline[stage]||{};doc.setDrawColor(...line);doc.line(margin,y+7,pageWidth-margin,y+7);doc.setFillColor(...(data.completed?[0,209,226]:soft));doc.circle(margin+4,y,4,"F");doc.setTextColor(...teal);doc.setFont("helvetica","bold");doc.setFontSize(7);doc.text(String(index+1).padStart(2,"0"),margin+4,y+1.9,{align:"center"});doc.setFontSize(9.5);doc.text(stage,margin+13,y+1);lineField(doc,"Data",dateLabel(data.date),143,y-5,50);y+=13;});
+  y = newPage(doc,"Checklist técnico"); technical.forEach((item,index)=>{const done=Boolean(technicalChecks[index]);const col=index%2;if(col===0&&y>266)y=newPage(doc,"Checklist técnico · continuação");doc.setDrawColor(...line);doc.roundedRect(margin+col*90,y-4,82,13,3,3,"S");doc.roundedRect(margin+col*90+5,y,4,4,1,1,"S");if(done){doc.setFillColor(...turquoise);doc.roundedRect(margin+col*90+5,y,4,4,1,1,"F");}doc.setTextColor(...teal);doc.setFont("helvetica",done?"bold":"normal");doc.setFontSize(8.2);doc.text(doc.splitTextToSize(item,65),margin+col*90+14,y+3);if(col===1||index===technical.length-1)y+=18;}); save(doc,"cronograma",profile);
 }
 
-export function downloadSummaryPdf(profile: PdfProfile) {
-  const doc = docBase("Quadro-resumo de CVI", profile); let y = sectionTitle(doc, "Dados registrados", 80);
-  const fields = [["Destino", profile.summary.destination], ["Fonte oficial consultada", profile.summary.source], ["Emissão de CVI", profile.summary.cvi], ["Import Permit", profile.summary.importPermit], ["Notificação de chegada", profile.summary.arrivalNotice]];
-  fields.forEach(([label, value]) => { doc.setFillColor(...pale); doc.roundedRect(margin, y - 5, pageWidth - margin * 2, 16, 3, 3, "F"); doc.setTextColor(...teal); doc.setFont("helvetica", "bold"); doc.setFontSize(8); doc.text(label, margin + 6, y); doc.setFont("helvetica", "normal"); doc.setFontSize(10); doc.text(value || "A confirmar", margin + 6, y + 7); y += 21; });
-  y = sectionTitle(doc, "Observações", y + 4); doc.setFillColor(...pale); doc.roundedRect(margin, y - 5, pageWidth - margin * 2, 48, 3, 3, "F"); paragraph(doc, profile.summary.notes || "Nenhuma observação registrada.", y + 4, pageWidth - margin * 2 - 12);
-  save(doc, "quadro-cvi", profile);
+export function downloadSummaryPdf(profile: PdfProfile, destinations: readonly (readonly string[])[]) {
+  const doc = base("Quadro-resumo de emissão de CVI", profile); let y = section(doc,"Conferência deste processo",74); y = box(doc,"Destino",profile.summary.destination,y); y = box(doc,"Fonte oficial consultada",profile.summary.source,y); y = box(doc,"Emissão de CVI",profile.summary.cvi,y); y = box(doc,"Import Permit",profile.summary.importPermit,y); y = box(doc,"Notificação de chegada",profile.summary.arrivalNotice,y); y = box(doc,"Observações",profile.summary.notes,y,35);
+  y=newPage(doc,"Quadro-resumo por destino"); const headers=["Destino","e-CVI","Endosso","Presencial","Import Permit","Notificação"]; doc.setFillColor(...teal);doc.rect(margin,y-5,pageWidth-margin*2,9,"F");doc.setTextColor(255,255,255);doc.setFont("helvetica","bold");doc.setFontSize(6.5);headers.forEach((header,index)=>doc.text(header,margin+[0,39,59,92,119,153][index],y));y+=10;destinations.forEach((row)=>{if(y>270){y=newPage(doc,"Quadro-resumo por destino · continuação");}doc.setDrawColor(...line);doc.line(margin,y+5,pageWidth-margin,y+5);doc.setTextColor(...teal);doc.setFont("helvetica","normal");doc.setFontSize(6.4);row.forEach((cell,index)=>doc.text(doc.splitTextToSize(cell, [36,18,30,24,31,26][index]),margin+[0,39,59,92,119,153][index],y));y+=Math.max(8,Math.max(...row.map((cell,index)=>doc.splitTextToSize(cell,[36,18,30,24,31,26][index]).length))*3.3+3);});save(doc,"quadro-cvi",profile);
 }
 
-export function downloadProcessPdf(profile: PdfProfile, items: string[], stages: string[]) {
-  const doc = docBase("Resumo do Processo", profile); let y = sectionTitle(doc, "Visão geral", 80);
-  y = paragraph(doc, `Destino: ${profile.summary.destination || "A confirmar"}`, y); y = paragraph(doc, `Checklist: ${profile.checks.filter(Boolean).length} de ${items.length} itens concluídos`, y); y = paragraph(doc, `CVI: ${profile.summary.cvi || "A confirmar"} | Import Permit: ${profile.summary.importPermit || "A confirmar"}`, y);
-  y = sectionTitle(doc, "Próximas etapas", y + 5); stages.forEach((stage) => { const item = profile.timeline[stage]; if (item?.status !== "Concluído") { doc.setTextColor(...teal); doc.setFont("helvetica", "normal"); doc.setFontSize(10); doc.text(`- ${stage}${item?.date ? ` (${item.date})` : ""}`, margin, y); y += 7; } });
-  y = sectionTitle(doc, "Observações", y + 8); paragraph(doc, profile.summary.notes || "Nenhuma observação registrada.", y); save(doc, "resumo-processo", profile);
-}
+export function downloadProcessPdf(profile: PdfProfile, items: string[], stages: string[]) { const doc=base("Resumo do processo",profile);let y=travelFields(doc,profile,74);y=section(doc,"Progresso",y);y=box(doc,"Checklist",`${profile.checks.filter(Boolean).length} de ${items.length} itens concluídos`,y);y=section(doc,"Próximas etapas",y);stages.filter((stage)=>!profile.timeline[stage]?.completed).forEach((stage)=>{doc.setTextColor(...teal);doc.setFontSize(9);doc.text(`• ${stage}`,margin,y);y+=7;});save(doc,"resumo-processo",profile); }
