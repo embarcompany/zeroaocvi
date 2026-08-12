@@ -1195,20 +1195,13 @@ export default function Home() {
           <details className="sidebar-accessibility">
             <summary aria-label="Abrir configurações de leitura">
               <Settings2 size={16} aria-hidden="true" />
-              <span>Configurações</span>
+              <span>Acessibilidade</span>
               <ChevronDown size={14} aria-hidden="true" />
             </summary>
             <div
               className="accessibility-panel"
               aria-label="Opções de acessibilidade"
             >
-              <div className="accessibility-panel-head">
-                <div>
-                  <b>LEITURA</b>
-                  <p>Preferências desta apostila</p>
-                </div>
-                <Settings2 size={16} strokeWidth={2.2} aria-hidden="true" />
-              </div>
               <div className="accessibility-controls" role="toolbar" aria-label="Ajustes de leitura">
                 <button
                   type="button"
@@ -1232,7 +1225,10 @@ export default function Home() {
                   }
                 >
                   <Moon size={18} strokeWidth={2.2} aria-hidden="true" />
-                  <span>Tema</span>
+                  <span className="accessibility-label">Tema</span>
+                  <small className="accessibility-state">
+                    {activeProfile.theme === "light" ? "Claro" : "Escuro"}
+                  </small>
                 </button>
                 <button
                   type="button"
@@ -1257,7 +1253,10 @@ export default function Home() {
                   }
                 >
                   <Type size={19} strokeWidth={2.2} aria-hidden="true" />
-                  <span>Texto</span>
+                  <span className="accessibility-label">Texto</span>
+                  <small className="accessibility-state">
+                    {activeProfile.fontScale === "large" ? "Ampliado" : "Padrão"}
+                  </small>
                 </button>
                 <button
                   type="button"
@@ -1281,7 +1280,10 @@ export default function Home() {
                   }
                 >
                   <ZapOff size={18} strokeWidth={2.2} aria-hidden="true" />
-                  <span>Movimento</span>
+                  <span className="accessibility-label">Movimento</span>
+                  <small className="accessibility-state">
+                    {activeProfile.reduceMotion ? "Reduzido" : "Normal"}
+                  </small>
                 </button>
               </div>
             </div>
