@@ -136,6 +136,100 @@
   box-shadow: none;
 }
 
+/* Ferramentas são painéis de trabalho: leitura, ação e orientação têm hierarquia própria. */
+.tool-bento {
+  align-items: start;
+}
+
+.tool-bento > * {
+  min-width: 0;
+}
+
+.checklist-progress {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px 16px;
+  align-content: center;
+  min-height: 112px;
+  padding: 18px !important;
+  border-radius: var(--radius-lg) !important;
+  background: var(--surface-subtle) !important;
+}
+
+.checklist-progress b {
+  align-self: center;
+  font-size: 15px;
+}
+
+.checklist-progress i {
+  height: 5px;
+}
+
+.tool-bento .tool-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-height: 112px;
+  padding: 18px !important;
+  border-radius: var(--radius-lg) !important;
+  background: var(--surface-subtle) !important;
+}
+
+.tool-bento .tool-actions button {
+  min-height: var(--control-height);
+}
+
+.checklist-bento > .attention-panel {
+  display: grid;
+  gap: 16px;
+  padding: 22px !important;
+  border-radius: var(--radius-lg) !important;
+}
+
+.checklist-bento > .attention-panel > div {
+  gap: 12px;
+  margin: 0;
+}
+
+.checklist-bento > .attention-panel p {
+  grid-template-columns: 24px minmax(0, 1fr);
+  gap: 10px;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.checklist-bento > .attention-panel p span {
+  width: 24px;
+  height: 24px;
+}
+
+@media (min-width: 701px) {
+  .tool-bento {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 18px;
+  }
+
+  .checklist-bento > .travel-card {
+    grid-column: 1 / -1;
+  }
+
+  .checklist-bento > .checklist-progress {
+    grid-column: span 4;
+  }
+
+  .checklist-bento > .tool-actions {
+    grid-column: span 8;
+  }
+
+  .checklist-bento > .checklist {
+    grid-column: span 8;
+  }
+
+  .checklist-bento > .attention-panel {
+    grid-column: span 4;
+  }
+}
+
 @media (max-width: 850px) {
   .reader-layout {
     padding-inline: clamp(18px, 5vw, 30px);
@@ -200,5 +294,14 @@
   .compact-checklist label {
     min-height: 60px !important;
     padding: 16px !important;
+  }
+
+  .tool-bento .tool-actions {
+    justify-content: stretch;
+    min-height: auto;
+  }
+
+  .tool-bento .tool-actions button {
+    flex: 1 1 auto;
   }
 }
