@@ -4,10 +4,11 @@ export type PdfStage = { date: string; status: string };
 export type PdfSummary = { destination: string; source: string; cvi: string; importPermit: string; arrivalNotice: string; notes: string };
 export type PdfProfile = { name: string; checks: boolean[]; timeline: Record<string, PdfStage>; summary: PdfSummary };
 
-const teal = [5, 67, 74] as const;
-const turquoise = [0, 209, 226] as const;
-const pale = [244, 250, 248] as const;
-const lime = [198, 215, 131] as const;
+type Rgb = [number, number, number];
+const teal: Rgb = [5, 67, 74];
+const turquoise: Rgb = [0, 209, 226];
+const pale: Rgb = [244, 250, 248];
+const lime: Rgb = [198, 215, 131];
 const pageWidth = 210;
 const margin = 18;
 

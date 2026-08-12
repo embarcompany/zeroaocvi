@@ -361,7 +361,7 @@ export default function Home() {
         window.localStorage.getItem(profilesKey) || "null",
       ) as { profiles?: ReaderProfile[]; activeProfileId?: string } | null;
       if (saved?.profiles?.length) {
-        const restored = saved.profiles.map((profile) => {
+        const restored: ReaderProfile[] = saved.profiles.map((profile) => {
           const completedLessons = { ...(profile.completedLessons || {}) };
           moduleLessons.forEach((lessons, index) => {
             if (profile.completedModules?.[index])
@@ -2668,17 +2668,14 @@ function Cronograma({
   setValidationNotes: (value: Record<string, string>) => void;
   onExport: () => void;
 }) {
-  const updateStage = (stage: string, update: Partial<StageData>) =>
-    onChange({
-      ...value,
-      [stage]: {
-        date: "",
-        status: "Pendente",
-        completed: false,
-        ...value[stage],
-        ...update,
-      },
-    });
+  const updateStage = (stage: string, update: Partial<StageData>) => {
+    const current: StageData = value[stage] || {
+      date: "",
+      status: "Pendente",
+      completed: false,
+    };
+    onChange({ ...value, [stage]: { ...current, ...update } });
+  };
   const updateTravel = (field: keyof TravelData, nextValue: string) =>
     onTravelChange({ ...travel, [field]: nextValue });
   const toggle = (
