@@ -136,6 +136,96 @@
   box-shadow: none;
 }
 
+/* Leitura longa: cada padrão tem um ritmo próprio e permanece navegável por teclado. */
+.native-heading {
+  scroll-margin-top: 96px;
+}
+
+.native-paragraph,
+.editorial-list,
+.editorial-checklist,
+.editorial-callout,
+.editorial-summary {
+  max-width: var(--reader-content-width);
+}
+
+.editorial-list,
+.editorial-checklist {
+  gap: 12px;
+}
+
+.editorial-list li,
+.editorial-checklist li {
+  align-items: flex-start;
+  padding-block: 4px;
+  line-height: 1.7;
+}
+
+.editorial-list-icon {
+  margin-top: .34em;
+}
+
+.editorial-callout,
+.editorial-summary {
+  padding: 22px 24px;
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+}
+
+.process-flow li,
+.method:not(.process-flow) li {
+  transition: border-color .18s ease, background-color .18s ease;
+}
+
+.process-flow li:hover,
+.method:not(.process-flow) li:hover {
+  border-color: var(--border-interactive);
+  background: var(--surface-interactive);
+}
+
+/* Acessibilidade ocupa o rodapé, com controles autoexplicativos e área de toque adequada. */
+.sidebar-accessibility summary {
+  min-height: var(--control-height);
+  border-radius: var(--radius-sm);
+}
+
+.accessibility-controls {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px !important;
+}
+
+.accessibility-control {
+  min-height: 64px !important;
+  border-radius: 12px !important;
+  transition: border-color .18s ease, background-color .18s ease, color .18s ease;
+}
+
+.accessibility-control:hover {
+  border-color: var(--border-interactive) !important;
+  background: var(--surface-interactive) !important;
+}
+
+.accessibility-control[aria-pressed="true"] {
+  border-color: var(--border-interactive) !important;
+  background: var(--surface-interactive) !important;
+}
+
+:where(button, a, input, select, textarea):focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--turq) 52%, transparent);
+  outline-offset: 3px;
+}
+
+@media (max-width: 850px) {
+  .native-heading {
+    scroll-margin-top: 76px;
+  }
+
+  .editorial-callout,
+  .editorial-summary {
+    padding: 19px 18px;
+  }
+}
+
 /* Ferramentas são painéis de trabalho: leitura, ação e orientação têm hierarquia própria. */
 .tool-bento {
   align-items: start;
