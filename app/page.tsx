@@ -2272,8 +2272,8 @@ function ModalidadesContent() {
           embarque.
         </figcaption>
       </figure>
-      <section className="objective">
-        <p>OBJETIVO DO MÓDULO</p>
+      <section className="objective" aria-labelledby="module-2-objective">
+        <p id="module-2-objective">OBJETIVO DO MÓDULO</p>
         <ul>
           <li>
             Reconhecer as diferenças entre cabine, bagagem acompanhada e carga
@@ -2284,7 +2284,7 @@ function ModalidadesContent() {
         </ul>
       </section>
       <h2>Como decidir a modalidade</h2>
-      <div className="decision-grid">
+      <section className="decision-grid decision-flow" aria-label="Dados para definir o requisito sanitário">
         <div>
           <b>1. Onde o pet pode viajar?</b>
           <span>
@@ -2303,7 +2303,7 @@ function ModalidadesContent() {
             Valide exigências sanitárias e regras locais antes de fechar a rota.
           </span>
         </div>
-      </div>
+      </section>
       <h2>PETC: Pet in Cabin</h2>
       <p>
         No PETC, o animal viaja na cabine com o tutor, acomodado em bolsa
@@ -2344,7 +2344,7 @@ function ModalidadesContent() {
         </p>
       </div>
       <h2>Situações especiais</h2>
-      <div className="special-cases">
+      <section className="special-cases process-stepper" aria-label="Quatro blocos de conferência">
         <section>
           <span>CÃO DE SERVIÇO</span>
           <h3>Assistência com tarefa treinada</h3>
@@ -2374,8 +2374,8 @@ function ModalidadesContent() {
             destino.
           </p>
         </section>
-      </div>
-      <div className="method">
+      </section>
+      <section className="method process-checklist" aria-label="Rotina de conferência da sorologia">
         <p>ANTES DE ORIENTAR O TUTOR</p>
         <ol>
           <li>Confirme a modalidade realmente aceita naquela rota e data.</li>
@@ -2388,7 +2388,7 @@ function ModalidadesContent() {
             depende de validação.
           </li>
         </ol>
-      </div>
+      </section>
       <Alert />
     </>
   );
