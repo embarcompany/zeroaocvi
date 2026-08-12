@@ -1202,9 +1202,14 @@ export default function Home() {
               className="accessibility-panel"
               aria-label="Opções de acessibilidade"
             >
-              <b>ACESSIBILIDADE</b>
-              <p>Preferências desta leitura</p>
-              <div>
+              <div className="accessibility-panel-head">
+                <div>
+                  <b>LEITURA</b>
+                  <p>Preferências desta apostila</p>
+                </div>
+                <Settings2 size={16} strokeWidth={2.2} aria-hidden="true" />
+              </div>
+              <div className="accessibility-controls" role="toolbar" aria-label="Ajustes de leitura">
                 <button
                   type="button"
                   className="accessibility-control"
