@@ -11,18 +11,19 @@ import {
   ClipboardCheck,
   FileCheck2,
   FileText,
+  BookMarked,
+  Copy,
   Eraser,
   Highlighter,
-  Italic,
   MapPin,
   Moon,
+  MessageSquarePlus,
   PawPrint,
   Plane,
   Settings2,
   ShieldCheck,
   SquareStack,
   Stethoscope,
-  Strikethrough,
   Type,
   Underline,
   UserRound,
@@ -254,7 +255,7 @@ type CourseBlock =
       module: number;
     }
   | { type: "table"; rows: string[][]; module: number };
-type TextMarkStyle = "highlight" | "underline" | "italic" | "strike";
+type TextMarkStyle = "highlight" | "action" | "underline";
 type TextMark = {
   id: string;
   text: string;
@@ -262,6 +263,20 @@ type TextMark = {
   blockId?: string;
   start?: number;
   end?: number;
+  contextBefore?: string;
+  contextAfter?: string;
+  createdAt?: string;
+};
+type StudyNote = {
+  id: string;
+  module: number;
+  blockId: string;
+  start: number;
+  end: number;
+  text: string;
+  quote: string;
+  createdAt: string;
+  updatedAt: string;
 };
 type ReaderProfile = {
   id: string;
@@ -274,6 +289,7 @@ type ReaderProfile = {
   completedLessons: Record<string, boolean>;
   highlights: Record<string, string[]>;
   textMarks: Record<string, TextMark[]>;
+  studyNotes: StudyNote[];
   annotations: Record<string, string>;
   checks: boolean[];
   timeline: Record<string, StageData>;
@@ -303,6 +319,7 @@ const createProfile = (name: string): ReaderProfile => ({
   completedLessons: {},
   highlights: {},
   textMarks: {},
+  studyNotes: [],
   annotations: {},
   checks: checklist.map(() => false),
   timeline: {},
@@ -382,20 +399,37 @@ export default function Home() {
             ),
             completedLessons,
             highlights: profile.highlights || {},
-            textMarks:
-              profile.textMarks ||
-              Object.fromEntries(
-                Object.entries(profile.highlights || {}).map(([key, texts]) => [
-                  key,
-                  Array.isArray(texts)
-                    ? texts.map((text) => ({
-                        id: `legacy-${key}-${text}`,
-                        text,
-                        style: "highlight" as const,
-                      }))
-                    : [],
-                ]),
-              ),
+            textMarks: Object.fromEntries(
+              Object.entries(
+                profile.textMarks ||
+                  Object.fromEntries(
+                    Object.entries(profile.highlights || {}).map(([key, texts]) => [
+                      key,
+                      Array.isArray(texts)
+                        ? texts.map((text) => ({
+                            id: `legacy-${key}-${text}`,
+                            text,
+                            style: "highlight",
+                          }))
+                        : [],
+                    ]),
+                  ),
+              ).map(([key, marks]) => [
+                key,
+                (Array.isArray(marks) ? marks : []).map((mark) => ({
+                  ...mark,
+                  style:
+                    mark.style === "underline"
+                      ? "underline"
+                      : mark.style === "highlight"
+                        ? "highlight"
+                        : "action",
+                })),
+              ]),
+            ),
+            studyNotes: Array.isArray(profile.studyNotes)
+              ? profile.studyNotes
+              : [],
             annotations: profile.annotations || {},
             checks: checklist.map((_, index) =>
               Boolean(profile.checks?.[index]),
@@ -573,6 +607,65 @@ export default function Home() {
         ),
       },
     }));
+  const saveStudyNote = (
+    moduleIndex: number,
+    selection: Omit<TextMark, "id" | "style">,
+    value: string,
+  ) =>
+    updateActiveProfile((profile) => {
+      const cleanValue = value.trim();
+      const existing = profile.studyNotes.find(
+        (note) =>
+          note.module === moduleIndex &&
+          note.blockId === selection.blockId &&
+          note.start === selection.start &&
+          note.end === selection.end,
+      );
+      const studyNotes = cleanValue
+        ? existing
+          ? profile.studyNotes.map((note) =>
+              note.id === existing.id
+                ? { ...note, text: cleanValue, updatedAt: new Date().toISOString() }
+                : note,
+            )
+          : [
+              ...profile.studyNotes,
+              {
+                id: `note-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+                module: moduleIndex,
+                blockId: selection.blockId || "",
+                start: selection.start || 0,
+                end: selection.end || selection.text.length,
+                quote: selection.text,
+                text: cleanValue,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+              },
+            ]
+        : existing
+          ? profile.studyNotes.filter((note) => note.id !== existing.id)
+          : profile.studyNotes;
+      return { ...profile, studyNotes };
+    });
+  const removeStudyNote = (id: string) =>
+    updateActiveProfile((profile) => ({
+      ...profile,
+      studyNotes: profile.studyNotes.filter((note) => note.id !== id),
+    }));
+  const openStudyItem = (moduleIndex: number, blockId: string) => {
+    setTool(null);
+    setActive(moduleIndex);
+    window.history.replaceState(null, "", `#module-${moduleIndex + 1}`);
+    window.setTimeout(() => {
+      const block = document.querySelector<HTMLElement>(
+        `[data-reader-block="${CSS.escape(blockId)}"]`,
+      );
+      (block || document.getElementById(`module-${moduleIndex + 1}`))?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }, 140);
+  };
   const updateAnnotation = (
     moduleIndex: number,
     lesson: string,
@@ -733,6 +826,33 @@ export default function Home() {
   const currentModuleProgress = Math.round(
     (completedCurrentLessons / Math.max(currentLessons.length, 1)) * 100,
   );
+  const studyItems = [
+    ...activeProfile.studyNotes.map((note) => ({
+      id: note.id,
+      kind: "note" as const,
+      module: note.module,
+      blockId: note.blockId,
+      quote: note.quote,
+      detail: note.text,
+    })),
+    ...Object.entries(activeProfile.textMarks).flatMap(([module, marks]) =>
+      marks
+        .filter((mark) => mark.blockId && mark.start !== undefined && mark.end !== undefined)
+        .map((mark) => ({
+          id: mark.id,
+          kind: "mark" as const,
+          module: Number(module),
+          blockId: mark.blockId || "",
+          quote: mark.text,
+          detail:
+            mark.style === "action"
+              ? "Ação prática"
+              : mark.style === "underline"
+                ? "Termo técnico"
+                : "Ponto importante",
+        })),
+    ),
+  ];
 
   return (
     <main className="reader" id="top">
@@ -1018,6 +1138,47 @@ export default function Home() {
                 </span>
               </button>
             </section>
+            <details className="study-library">
+              <summary>
+                <BookMarked size={16} aria-hidden="true" />
+                <span>
+                  <b>MINHAS ANOTAÇÕES</b>
+                  <small>{studyItems.length} registro{studyItems.length === 1 ? "" : "s"}</small>
+                </span>
+                <ChevronDown size={14} aria-hidden="true" />
+              </summary>
+              <div className="study-library-list">
+                {studyItems.length ? (
+                  studyItems.slice(0, 12).map((item) => (
+                    <div className="study-library-item" key={`${item.kind}-${item.id}`}>
+                      <button
+                        type="button"
+                        onClick={() => openStudyItem(item.module, item.blockId)}
+                      >
+                        <span className={`study-item-dot ${item.kind}`} aria-hidden="true" />
+                        <span>
+                          <small>Módulo {String(item.module + 1).padStart(2, "0")}</small>
+                          <b>“{item.quote}”</b>
+                          <em>{item.detail}</em>
+                        </span>
+                      </button>
+                      {item.kind === "note" && (
+                        <button
+                          type="button"
+                          className="study-item-remove"
+                          onClick={() => removeStudyNote(item.id)}
+                          aria-label="Excluir anotação"
+                        >
+                          <X size={13} />
+                        </button>
+                      )}
+                    </div>
+                  ))
+                ) : (
+                  <p className="study-library-empty">Selecione um trecho da aula para guardar seus pontos importantes.</p>
+                )}
+              </div>
+            </details>
           </div>
           <details className="sidebar-accessibility">
             <summary aria-label="Abrir configurações de leitura">
@@ -1194,12 +1355,17 @@ export default function Home() {
               completedLessons={activeProfile.completedLessons}
               textMarks={activeProfile.textMarks[active] || []}
               annotations={activeProfile.annotations}
+              studyNotes={activeProfile.studyNotes.filter(
+                (note) => note.module === active,
+              )}
               moduleCompleted={activeProfile.completedModules[active]}
               onToggleLesson={(lesson) => toggleLessonComplete(active, lesson)}
               onToggleTextMark={(mark, style) =>
                 toggleTextMark(active, mark, style)
               }
               onRemoveTextMarks={(mark) => removeTextMarks(active, mark)}
+              onSaveStudyNote={(mark, value) => saveStudyNote(active, mark, value)}
+              onRemoveStudyNote={removeStudyNote}
               onUpdateAnnotation={(lesson, value) =>
                 updateAnnotation(active, lesson, value)
               }
@@ -1227,10 +1393,13 @@ function ModulePage({
   completedLessons,
   textMarks,
   annotations,
+  studyNotes,
   moduleCompleted,
   onToggleLesson,
   onToggleTextMark,
   onRemoveTextMarks,
+  onSaveStudyNote,
+  onRemoveStudyNote,
   onUpdateAnnotation,
   onToggleModule,
   onPrevious,
@@ -1242,6 +1411,7 @@ function ModulePage({
   completedLessons: Record<string, boolean>;
   textMarks: TextMark[];
   annotations: Record<string, string>;
+  studyNotes: StudyNote[];
   moduleCompleted: boolean;
   onToggleLesson: (lesson: string) => void;
   onToggleTextMark: (
@@ -1249,6 +1419,8 @@ function ModulePage({
     style: TextMarkStyle,
   ) => void;
   onRemoveTextMarks: (mark: Omit<TextMark, "id" | "style">) => void;
+  onSaveStudyNote: (mark: Omit<TextMark, "id" | "style">, value: string) => void;
+  onRemoveStudyNote: (id: string) => void;
   onUpdateAnnotation: (lesson: string, value: string) => void;
   onToggleModule: () => void;
   onPrevious?: () => void;
@@ -1283,9 +1455,12 @@ function ModulePage({
         completedLessons={completedLessons}
         textMarks={textMarks}
         annotations={annotations}
+        studyNotes={studyNotes}
         onToggleLesson={onToggleLesson}
         onToggleTextMark={onToggleTextMark}
         onRemoveTextMarks={onRemoveTextMarks}
+        onSaveStudyNote={onSaveStudyNote}
+        onRemoveStudyNote={onRemoveStudyNote}
         onUpdateAnnotation={onUpdateAnnotation}
       />
       <ModuleRecap
@@ -1379,9 +1554,12 @@ function NativeCourseContent({
   completedLessons,
   textMarks,
   annotations,
+  studyNotes,
   onToggleLesson,
   onToggleTextMark,
   onRemoveTextMarks,
+  onSaveStudyNote,
+  onRemoveStudyNote,
   onUpdateAnnotation,
 }: {
   module: number;
@@ -1389,12 +1567,15 @@ function NativeCourseContent({
   completedLessons: Record<string, boolean>;
   textMarks: TextMark[];
   annotations: Record<string, string>;
+  studyNotes: StudyNote[];
   onToggleLesson: (lesson: string) => void;
   onToggleTextMark: (
     mark: Omit<TextMark, "id" | "style">,
     style: TextMarkStyle,
   ) => void;
   onRemoveTextMarks: (mark: Omit<TextMark, "id" | "style">) => void;
+  onSaveStudyNote: (mark: Omit<TextMark, "id" | "style">, value: string) => void;
+  onRemoveStudyNote: (id: string) => void;
   onUpdateAnnotation: (lesson: string, value: string) => void;
 }) {
   const [blocks, setBlocks] = useState<CourseBlock[] | null>(null);
@@ -1404,6 +1585,8 @@ function NativeCourseContent({
     "id" | "style"
   > | null>(null);
   const [selectionPosition, setSelectionPosition] = useState({ x: 0, y: 0 });
+  const [noteEditorOpen, setNoteEditorOpen] = useState(false);
+  const [noteDraft, setNoteDraft] = useState("");
   const courseRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -1496,10 +1679,22 @@ function NativeCourseContent({
           item.start < item.end,
       )
       .map((item) => ({ ...item, start: item.start!, end: item.end! }));
-    if (!ranges.length) return text;
+    const notes = studyNotes.filter(
+      (item) =>
+        item.blockId === blockId &&
+        item.start >= 0 &&
+        item.end <= text.length &&
+        item.start < item.end,
+    );
+    if (!ranges.length && !notes.length) return text;
 
     const boundaries = Array.from(
-      new Set([0, text.length, ...ranges.flatMap((item) => [item.start, item.end])]),
+      new Set([
+        0,
+        text.length,
+        ...ranges.flatMap((item) => [item.start, item.end]),
+        ...notes.flatMap((item) => [item.start, item.end]),
+      ]),
     ).sort((a, b) => a - b);
     return boundaries.slice(0, -1).map((start, index) => {
       const end = boundaries[index + 1];
@@ -1510,12 +1705,15 @@ function NativeCourseContent({
             .map((item) => item.style),
         ),
       );
-      if (!styles.length)
+      const note = notes.find(
+        (item) => item.start <= start && item.end >= end,
+      );
+      if (!styles.length && !note)
         return <span key={`${blockId}-${start}`}>{text.slice(start, end)}</span>;
       return (
         <mark
           key={`${blockId}-${start}`}
-          className={`text-mark ${styles.map((style) => `text-mark-${style}`).join(" ")}`}
+          className={`text-mark ${note ? "text-mark-noted" : ""} ${styles.map((style) => `text-mark-${style}`).join(" ")}`}
           title="Clique para editar esta marcação"
           onClick={(event) => {
             const rect = event.currentTarget.getBoundingClientRect();
@@ -1523,8 +1721,17 @@ function NativeCourseContent({
               x: Math.min(Math.max(rect.left + rect.width / 2, 118), window.innerWidth - 118),
               y: rect.top > 76 ? rect.top - 10 : rect.bottom + 10,
             });
-            setSelectedText(text.slice(start, end));
-            setSelectedMark({ text: text.slice(start, end), blockId, start, end });
+            const selectionStart = note?.start ?? start;
+            const selectionEnd = note?.end ?? end;
+            setSelectedText(text.slice(selectionStart, selectionEnd));
+            setSelectedMark({
+              text: text.slice(selectionStart, selectionEnd),
+              blockId,
+              start: selectionStart,
+              end: selectionEnd,
+            });
+            setNoteDraft(note?.text || "");
+            setNoteEditorOpen(Boolean(note));
           }}
         >
           {text.slice(start, end)}
@@ -1541,18 +1748,14 @@ function NativeCourseContent({
         : selection?.anchorNode?.parentElement;
     if (
       !selection?.anchorNode ||
-      !anchorElement?.closest(".lesson") ||
+      !anchorElement?.closest(".native-course") ||
       text.length < 3 ||
       text.length > 320
     )
       return;
     const range = selection.getRangeAt(0);
-    const block = anchorElement.closest<HTMLElement>(
-      "[data-reader-block], p, li, h1, h2, h3, h4, td, th, figcaption",
-    );
+    const block = anchorElement.closest<HTMLElement>("[data-reader-block]");
     if (!block || !block.contains(range.commonAncestorContainer)) return;
-    if (!block.dataset.readerBlock)
-      block.dataset.readerBlock = `reader-${module}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
     const prefix = document.createRange();
     prefix.selectNodeContents(block);
     prefix.setEnd(range.startContainer, range.startOffset);
@@ -1566,8 +1769,24 @@ function NativeCourseContent({
       ),
       y: rect.top > 76 ? rect.top - 10 : rect.bottom + 10,
     });
+    const blockText = block.textContent || "";
     setSelectedText(text);
-    setSelectedMark({ text, blockId: block.dataset.readerBlock, start, end });
+    setSelectedMark({
+      text,
+      blockId: block.dataset.readerBlock,
+      start,
+      end,
+      contextBefore: blockText.slice(Math.max(0, start - 36), start),
+      contextAfter: blockText.slice(end, end + 36),
+    });
+    const note = studyNotes.find(
+      (item) =>
+        item.blockId === block.dataset.readerBlock &&
+        item.start === start &&
+        item.end === end,
+    );
+    setNoteDraft(note?.text || "");
+    setNoteEditorOpen(false);
   };
 
   useEffect(() => {
@@ -1625,9 +1844,8 @@ function NativeCourseContent({
           {(
             [
               ["highlight", Highlighter, "Marca-texto"],
+              ["action", BookMarked, "Marcar ação"],
               ["underline", Underline, "Sublinhar"],
-              ["italic", Italic, "Itálico"],
-              ["strike", Strikethrough, "Tachar"],
             ] as const
           ).map(([style, Icon, label]) => (
             <button
@@ -1646,6 +1864,24 @@ function NativeCourseContent({
               <Icon size={15} strokeWidth={2.2} />
             </button>
           ))}
+          <button
+            type="button"
+            title="Adicionar anotação"
+            aria-label="Adicionar anotação"
+            onMouseDown={(event) => event.preventDefault()}
+            onClick={() => setNoteEditorOpen((open) => !open)}
+          >
+            <MessageSquarePlus size={15} strokeWidth={2.2} />
+          </button>
+          <button
+            type="button"
+            title="Copiar trecho"
+            aria-label="Copiar trecho"
+            onMouseDown={(event) => event.preventDefault()}
+            onClick={() => selectedText && navigator.clipboard?.writeText(selectedText)}
+          >
+            <Copy size={15} strokeWidth={2.2} />
+          </button>
           <button
             type="button"
             title="Remover marcações deste trecho"
@@ -1671,6 +1907,31 @@ function NativeCourseContent({
           >
             ×
           </button>
+          {noteEditorOpen && selectedMark && (
+            <form
+              className="selection-note-editor"
+              onSubmit={(event) => {
+                event.preventDefault();
+                onSaveStudyNote(selectedMark, noteDraft);
+                setNoteEditorOpen(false);
+              }}
+            >
+              <label htmlFor="study-note">Sua anotação</label>
+              <textarea
+                id="study-note"
+                autoFocus
+                value={noteDraft}
+                onChange={(event) => setNoteDraft(event.target.value)}
+                placeholder="O que você quer lembrar neste trecho?"
+              />
+              <div>
+                <button type="submit">Salvar nota</button>
+                <button type="button" onClick={() => setNoteEditorOpen(false)}>
+                  Cancelar
+                </button>
+              </div>
+            </form>
+          )}
         </div>
       )}
       <div className="native-blocks">
