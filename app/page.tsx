@@ -11,6 +11,7 @@ import {
   ClipboardCheck,
   FileCheck2,
   FileText,
+  Eraser,
   Highlighter,
   Italic,
   MapPin,
@@ -550,6 +551,28 @@ export default function Home() {
         },
       };
     });
+  const removeTextMarks = (
+    moduleIndex: number,
+    selection: Omit<TextMark, "id" | "style">,
+  ) =>
+    updateActiveProfile((profile) => ({
+      ...profile,
+      textMarks: {
+        ...profile.textMarks,
+        [moduleIndex]: (profile.textMarks[moduleIndex] || []).filter(
+          (item) =>
+            !(
+              item.blockId === selection.blockId &&
+              item.start !== undefined &&
+              item.end !== undefined &&
+              selection.start !== undefined &&
+              selection.end !== undefined &&
+              item.start < selection.end &&
+              item.end > selection.start
+            ),
+        ),
+      },
+    }));
   const updateAnnotation = (
     moduleIndex: number,
     lesson: string,
@@ -1176,6 +1199,7 @@ export default function Home() {
               onToggleTextMark={(mark, style) =>
                 toggleTextMark(active, mark, style)
               }
+              onRemoveTextMarks={(mark) => removeTextMarks(active, mark)}
               onUpdateAnnotation={(lesson, value) =>
                 updateAnnotation(active, lesson, value)
               }
@@ -1206,6 +1230,7 @@ function ModulePage({
   moduleCompleted,
   onToggleLesson,
   onToggleTextMark,
+  onRemoveTextMarks,
   onUpdateAnnotation,
   onToggleModule,
   onPrevious,
@@ -1223,6 +1248,7 @@ function ModulePage({
     mark: Omit<TextMark, "id" | "style">,
     style: TextMarkStyle,
   ) => void;
+  onRemoveTextMarks: (mark: Omit<TextMark, "id" | "style">) => void;
   onUpdateAnnotation: (lesson: string, value: string) => void;
   onToggleModule: () => void;
   onPrevious?: () => void;
@@ -1259,6 +1285,7 @@ function ModulePage({
         annotations={annotations}
         onToggleLesson={onToggleLesson}
         onToggleTextMark={onToggleTextMark}
+        onRemoveTextMarks={onRemoveTextMarks}
         onUpdateAnnotation={onUpdateAnnotation}
       />
       <ModuleRecap
@@ -1354,6 +1381,7 @@ function NativeCourseContent({
   annotations,
   onToggleLesson,
   onToggleTextMark,
+  onRemoveTextMarks,
   onUpdateAnnotation,
 }: {
   module: number;
@@ -1366,6 +1394,7 @@ function NativeCourseContent({
     mark: Omit<TextMark, "id" | "style">,
     style: TextMarkStyle,
   ) => void;
+  onRemoveTextMarks: (mark: Omit<TextMark, "id" | "style">) => void;
   onUpdateAnnotation: (lesson: string, value: string) => void;
 }) {
   const [blocks, setBlocks] = useState<CourseBlock[] | null>(null);
@@ -1409,13 +1438,14 @@ function NativeCourseContent({
       ? Boolean(completedLessons[`${module - 1}:${lesson}`])
       : false;
     const noteKey = lesson ? `${module - 1}:${lesson}` : "";
+    const blockId = `heading-${sectionCode || text.replace(/[^a-z0-9]+/gi, "-").slice(0, 48)}`;
     const heading =
       level === 4 ? (
-        <h4 id={id}>{text}</h4>
+        <h4 id={id} data-reader-block={blockId}>{renderMarkedText(text, blockId)}</h4>
       ) : level === 3 ? (
-        <h3 id={id}>{text}</h3>
+        <h3 id={id} data-reader-block={blockId}>{renderMarkedText(text, blockId)}</h3>
       ) : (
-        <h2 id={id}>{text}</h2>
+        <h2 id={id} data-reader-block={blockId}>{renderMarkedText(text, blockId)}</h2>
       );
     if (!lesson) return heading;
     return (
@@ -1454,41 +1484,53 @@ function NativeCourseContent({
       </>
     );
   };
-  const renderHighlightedText = (text: string, blockId: string) => {
-    const mark = [...textMarks]
-      .reverse()
-      .find(
+  const renderMarkedText = (text: string, blockId: string) => {
+    const ranges = textMarks
+      .filter(
         (item) =>
-          item.text.length > 2 &&
-          (item.blockId === blockId
-            ? item.start !== undefined && item.end !== undefined
-            : text.includes(item.text)),
+          item.blockId === blockId &&
+          item.start !== undefined &&
+          item.end !== undefined &&
+          item.start >= 0 &&
+          item.end <= text.length &&
+          item.start < item.end,
+      )
+      .map((item) => ({ ...item, start: item.start!, end: item.end! }));
+    if (!ranges.length) return text;
+
+    const boundaries = Array.from(
+      new Set([0, text.length, ...ranges.flatMap((item) => [item.start, item.end])]),
+    ).sort((a, b) => a - b);
+    return boundaries.slice(0, -1).map((start, index) => {
+      const end = boundaries[index + 1];
+      const styles = Array.from(
+        new Set(
+          ranges
+            .filter((item) => item.start <= start && item.end >= end)
+            .map((item) => item.style),
+        ),
       );
-    if (!mark) return text;
-    if (
-      mark.blockId === blockId &&
-      mark.start !== undefined &&
-      mark.end !== undefined
-    )
+      if (!styles.length)
+        return <span key={`${blockId}-${start}`}>{text.slice(start, end)}</span>;
       return (
-        <>
-          {text.slice(0, mark.start)}
-          <mark className={`text-mark text-mark-${mark.style}`}>
-            {text.slice(mark.start, mark.end)}
-          </mark>
-          {text.slice(mark.end)}
-        </>
+        <mark
+          key={`${blockId}-${start}`}
+          className={`text-mark ${styles.map((style) => `text-mark-${style}`).join(" ")}`}
+          title="Clique para editar esta marcação"
+          onClick={(event) => {
+            const rect = event.currentTarget.getBoundingClientRect();
+            setSelectionPosition({
+              x: Math.min(Math.max(rect.left + rect.width / 2, 118), window.innerWidth - 118),
+              y: rect.top > 76 ? rect.top - 10 : rect.bottom + 10,
+            });
+            setSelectedText(text.slice(start, end));
+            setSelectedMark({ text: text.slice(start, end), blockId, start, end });
+          }}
+        >
+          {text.slice(start, end)}
+        </mark>
       );
-    return text.split(mark.text).map((part, index, pieces) => (
-      <span key={`${part}-${index}`}>
-        {part}
-        {index < pieces.length - 1 && (
-          <mark className={`text-mark text-mark-${mark.style}`}>
-            {mark.text}
-          </mark>
-        )}
-      </span>
-    ));
+    });
   };
   const captureSelection = () => {
     const selection = window.getSelection();
@@ -1528,26 +1570,19 @@ function NativeCourseContent({
     setSelectedMark({ text, blockId: block.dataset.readerBlock, start, end });
   };
 
-  const applySelectionStyle = (style: TextMarkStyle) => {
-    const command =
-      style === "highlight"
-        ? "hiliteColor"
-        : style === "underline"
-          ? "underline"
-          : style === "italic"
-            ? "italic"
-            : "strikeThrough";
-    document.execCommand(
-      command,
-      false,
-      style === "highlight" ? "#c6d783" : undefined,
-    );
-  };
-
   useEffect(() => {
-    const handleMouseUp = () => window.requestAnimationFrame(captureSelection);
-    window.addEventListener("mouseup", handleMouseUp);
-    return () => window.removeEventListener("mouseup", handleMouseUp);
+    const handleSelection = () => window.requestAnimationFrame(captureSelection);
+    const handleKeyUp = (event: KeyboardEvent) => {
+      if (event.shiftKey || event.key.startsWith("Arrow")) handleSelection();
+    };
+    window.addEventListener("mouseup", handleSelection);
+    window.addEventListener("keyup", handleKeyUp);
+    window.addEventListener("touchend", handleSelection);
+    return () => {
+      window.removeEventListener("mouseup", handleSelection);
+      window.removeEventListener("keyup", handleKeyUp);
+      window.removeEventListener("touchend", handleSelection);
+    };
   });
 
   if (blocks === null)
@@ -1602,7 +1637,6 @@ function NativeCourseContent({
               aria-label={label}
               onMouseDown={(event) => event.preventDefault()}
               onClick={() => {
-                applySelectionStyle(style);
                 if (selectedMark) onToggleTextMark(selectedMark, style);
                 setSelectedText("");
                 setSelectedMark(null);
@@ -1612,6 +1646,20 @@ function NativeCourseContent({
               <Icon size={15} strokeWidth={2.2} />
             </button>
           ))}
+          <button
+            type="button"
+            title="Remover marcações deste trecho"
+            aria-label="Remover marcações deste trecho"
+            onMouseDown={(event) => event.preventDefault()}
+            onClick={() => {
+              if (selectedMark) onRemoveTextMarks(selectedMark);
+              setSelectedText("");
+              setSelectedMark(null);
+              window.getSelection()?.removeAllRanges();
+            }}
+          >
+            <Eraser size={15} strokeWidth={2.2} />
+          </button>
           <button
             type="button"
             onMouseDown={(event) => event.preventDefault()}
@@ -1635,12 +1683,18 @@ function NativeCourseContent({
                     <tr key={`${index}-${rowIndex}`}>
                       {row.map((cell, cellIndex) =>
                         rowIndex === 0 ? (
-                          <th key={`${index}-${rowIndex}-${cellIndex}`}>
-                            {cell}
+                          <th
+                            key={`${index}-${rowIndex}-${cellIndex}`}
+                            data-reader-block={`table-${index}-${rowIndex}-${cellIndex}`}
+                          >
+                            {renderMarkedText(cell, `table-${index}-${rowIndex}-${cellIndex}`)}
                           </th>
                         ) : (
-                          <td key={`${index}-${rowIndex}-${cellIndex}`}>
-                            {cell}
+                          <td
+                            key={`${index}-${rowIndex}-${cellIndex}`}
+                            data-reader-block={`table-${index}-${rowIndex}-${cellIndex}`}
+                          >
+                            {renderMarkedText(cell, `table-${index}-${rowIndex}-${cellIndex}`)}
                           </td>
                         ),
                       )}
@@ -1668,7 +1722,7 @@ function NativeCourseContent({
               data-reader-block={`paragraph-${index}`}
               key={`paragraph-${index}`}
             >
-              {renderHighlightedText(block.text, `paragraph-${index}`)}
+              {renderMarkedText(block.text, `paragraph-${index}`)}
             </p>
           ),
         )}
