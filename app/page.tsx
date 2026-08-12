@@ -652,19 +652,30 @@ export default function Home() {
       ...profile,
       studyNotes: profile.studyNotes.filter((note) => note.id !== id),
     }));
-  const openStudyItem = (moduleIndex: number, blockId: string) => {
+  const openStudyItem = (moduleIndex: number, blockId: string, quote: string) => {
     setTool(null);
     setActive(moduleIndex);
     window.history.replaceState(null, "", `#module-${moduleIndex + 1}`);
-    window.setTimeout(() => {
-      const block = document.querySelector<HTMLElement>(
+    let attempt = 0;
+    const findAndScroll = () => {
+      const lesson = document.querySelector<HTMLElement>(
+        `.lesson[data-study-module="${moduleIndex}"]`,
+      );
+      const block = lesson?.querySelector<HTMLElement>(
         `[data-reader-block="${CSS.escape(blockId)}"]`,
       );
-      (block || document.getElementById(`module-${moduleIndex + 1}`))?.scrollIntoView({
+      if (block && (!quote || block.textContent?.includes(quote))) {
+        block.scrollIntoView({ behavior: "smooth", block: "center" });
+        return;
+      }
+      attempt += 1;
+      if (attempt < 28) return window.setTimeout(findAndScroll, 80);
+      document.getElementById(`module-${moduleIndex + 1}`)?.scrollIntoView({
         behavior: "smooth",
-        block: "center",
+        block: "start",
       });
-    }, 140);
+    };
+    window.setTimeout(findAndScroll, 40);
   };
   const updateAnnotation = (
     moduleIndex: number,
@@ -1153,7 +1164,7 @@ export default function Home() {
                     <div className="study-library-item" key={`${item.kind}-${item.id}`}>
                       <button
                         type="button"
-                        onClick={() => openStudyItem(item.module, item.blockId)}
+                        onClick={() => openStudyItem(item.module, item.blockId, item.quote)}
                       >
                         <span className={`study-item-dot ${item.kind}`} aria-hidden="true" />
                         <span>
@@ -1273,6 +1284,7 @@ export default function Home() {
         <article
           className="lesson"
           id={!tool ? `module-${active + 1}` : undefined}
+          data-study-module={!tool ? active : undefined}
         >
           {!tool && (
             <section
