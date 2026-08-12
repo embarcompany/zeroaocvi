@@ -8,6 +8,7 @@ import {
   CalendarDays,
   Check,
   ChevronDown,
+  ChevronRight,
   ClipboardCheck,
   FileCheck2,
   FileText,
@@ -1920,10 +1921,12 @@ function NativeCourseContent({
         }
         index -= 1;
         const checklistLike = items.some((item) => /^\s*[☐✔✓]/.test(item.text));
+        const ListIcon = checklistLike ? Check : ChevronRight;
         output.push(
           <ul className={checklistLike ? "editorial-checklist" : "editorial-list"} key={`list-${items[0].index}`}>
             {items.map((item) => (
               <li data-reader-block={`list-${item.index}`} key={`list-item-${item.index}`}>
+                <ListIcon className="editorial-list-icon" size={checklistLike ? 16 : 18} strokeWidth={2.5} aria-hidden="true" />
                 {renderMarkedText(listText(item.text), `list-${item.index}`)}
               </li>
             ))}
@@ -2367,7 +2370,7 @@ function ModalidadesContent() {
         </p>
       </div>
       <h2>Situações especiais</h2>
-      <section className="special-cases process-stepper" aria-label="Quatro blocos de conferência">
+      <section className="special-cases" aria-label="Situações especiais de transporte">
         <section>
           <span>CÃO DE SERVIÇO</span>
           <h3>Assistência com tarefa treinada</h3>
@@ -2398,7 +2401,7 @@ function ModalidadesContent() {
           </p>
         </section>
       </section>
-      <section className="method process-checklist" aria-label="Rotina de conferência da sorologia">
+      <section className="method process-checklist" aria-label="Checklist antes de orientar o tutor">
         <p>ANTES DE ORIENTAR O TUTOR</p>
         <ol>
           <li>Confirme a modalidade realmente aceita naquela rota e data.</li>
@@ -2465,7 +2468,7 @@ function SanitarioContent() {
         </div>
       </div>
       <h2>Os quatro blocos de conferência</h2>
-      <div className="special-cases">
+      <section className="special-cases process-stepper" aria-label="Etapas da conferência sanitária">
         <section>
           <span>1 · REQUISITO SANITÁRIO</span>
           <h3>Vacina, microchip e exames</h3>
@@ -2505,7 +2508,7 @@ function SanitarioContent() {
             exames e anexos exigidos.
           </p>
         </section>
-      </div>
+      </section>
       <h2>Sorologia antirrábica: trate como cronograma</h2>
       <p>
         Quando exigida, a sorologia envolve coleta, laboratório aceito,
@@ -2513,7 +2516,7 @@ function SanitarioContent() {
         prazo apenas olhando a data da coleta: valide o protocolo completo do
         destino e mantenha o laudo original no dossiê.
       </p>
-      <div className="method">
+      <section className="method process-flow" aria-label="Fluxo de conferência da sorologia">
         <p>ROTINA DE CONFERÊNCIA</p>
         <ol>
           <li>
@@ -2528,7 +2531,7 @@ function SanitarioContent() {
             espera.
           </li>
         </ol>
-      </div>
+      </section>
       <h2>Respaldo: o dossiê que sustenta o CVI</h2>
       <p>
         Respaldo é a organização das evidências que demonstram o cumprimento da
@@ -2597,7 +2600,7 @@ function PlanejamentoContent() {
         </div>
       </div>
       <h2>O método Embarpet para organizar o caso</h2>
-      <div className="special-cases">
+      <section className="special-cases process-stepper" aria-label="Fluxo do método Embarpet">
         <section>
           <span>ETAPA 1 · DIAGNÓSTICO</span>
           <h3>Entender o caso real</h3>
@@ -2634,7 +2637,7 @@ function PlanejamentoContent() {
             responsável sabe sua próxima ação.
           </p>
         </section>
-      </div>
+      </section>
       <h2>Rota: não é só o menor preço</h2>
       <p>
         Uma rota tecnicamente adequada considera conexões, tempo de espera,
@@ -2869,7 +2872,7 @@ function DocumentacaoContent() {
         </section>
       </div>
       <h2>Sequência de conferência</h2>
-      <div className="decision-grid">
+      <section className="decision-grid decision-flow" aria-label="Fluxo de conferência documental">
         <div>
           <b>1. Conferir origem</b>
           <span>
@@ -2891,7 +2894,7 @@ function DocumentacaoContent() {
             utilização.
           </span>
         </div>
-      </div>
+      </section>
       <h2>Emissão presencial e e-CVI</h2>
       <p>
         A modalidade de emissão depende do destino e dos canais disponíveis para
