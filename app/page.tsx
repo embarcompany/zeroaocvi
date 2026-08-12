@@ -1638,6 +1638,103 @@ function NativeCourseContent({
     };
   }, [module]);
 
+  useEffect(() => {
+    const lessonRoot = document.querySelector<HTMLElement>(".lesson");
+    if (!lessonRoot) return;
+    const selector = [
+      "h1", "h2", "h3", "h4", "p", "li", "td", "th", "figcaption",
+      ".decision-grid > div", ".special-cases > section", ".method", ".objective",
+      ".attention-panel", ".module-recap", ".guide-intro",
+    ].join(",");
+    lessonRoot.querySelectorAll<HTMLElement>(selector).forEach((element, index) => {
+      if (!element.dataset.readerBlock && element.textContent?.trim())
+        element.dataset.readerBlock = `module-${module}-block-${index}`;
+    });
+  }, [module, blocks]);
+
+  useEffect(() => {
+    const highlights = (CSS as unknown as {
+      highlights?: Map<string, { }>; 
+    }).highlights;
+    const HighlightConstructor = (window as unknown as {
+      Highlight?: new (...ranges: Range[]) => { };
+    }).Highlight;
+    if (!highlights || !HighlightConstructor) return;
+    const styleId = "embarpet-study-highlight-styles";
+    if (!document.getElementById(styleId)) {
+      const style = document.createElement("style");
+      style.id = styleId;
+      style.textContent = [
+        "::highlight(embarpet-study-highlight){background:#dce9a7;color:#05434a}",
+        "::highlight(embarpet-study-action){background:#bdeff0;color:#05434a}",
+        "::highlight(embarpet-study-underline){text-decoration:underline 2px #009dac;text-underline-offset:3px}",
+        "::highlight(embarpet-study-note){text-decoration:underline 2px dotted #009dac;text-underline-offset:4px}",
+        ':root[data-theme="dark"]::highlight(embarpet-study-highlight){background:#586b3d;color:#f6ffe7}',
+        ':root[data-theme="dark"]::highlight(embarpet-study-action){background:#1d686e;color:#e8fffd}',
+        ':root[data-theme="dark"]::highlight(embarpet-study-underline),:root[data-theme="dark"]::highlight(embarpet-study-note){text-decoration-color:#71d8ac}',
+      ].join("");
+      document.head.append(style);
+    }
+
+    const rangeForOffsets = (element: HTMLElement, start: number, end: number) => {
+      const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
+      let offset = 0;
+      let startNode: Text | null = null;
+      let endNode: Text | null = null;
+      let startOffset = 0;
+      let endOffset = 0;
+      while (walker.nextNode()) {
+        const node = walker.currentNode as Text;
+        const next = offset + node.data.length;
+        if (!startNode && start >= offset && start <= next) {
+          startNode = node;
+          startOffset = start - offset;
+        }
+        if (end >= offset && end <= next) {
+          endNode = node;
+          endOffset = end - offset;
+          break;
+        }
+        offset = next;
+      }
+      if (!startNode || !endNode) return null;
+      const range = document.createRange();
+      range.setStart(startNode, startOffset);
+      range.setEnd(endNode, endOffset);
+      return range;
+    };
+    const names: Record<TextMarkStyle | "note", string> = {
+      highlight: "embarpet-study-highlight",
+      action: "embarpet-study-action",
+      underline: "embarpet-study-underline",
+      note: "embarpet-study-note",
+    };
+    Object.values(names).forEach((name) => highlights.delete(name));
+    const createRanges = (
+      items: Array<{ blockId?: string; start?: number; end?: number; text?: string; quote?: string }>,
+    ) =>
+      items.flatMap((item) => {
+        const block = item.blockId
+          ? document.querySelector<HTMLElement>(`[data-reader-block="${CSS.escape(item.blockId)}"]`)
+          : null;
+        if (!block || item.start === undefined || item.end === undefined) return [];
+        const source = block.textContent || "";
+        const quote = item.text || item.quote || "";
+        const start = source.slice(item.start, item.end) === quote
+          ? item.start
+          : source.indexOf(quote);
+        return start >= 0 ? [rangeForOffsets(block, start, start + quote.length)].filter(Boolean) : [];
+      }) as Range[];
+    (Object.keys(names) as Array<TextMarkStyle | "note">).forEach((style) => {
+      const entries = style === "note"
+        ? studyNotes
+        : textMarks.filter((mark) => mark.style === style);
+      const ranges = createRanges(entries);
+      if (ranges.length) highlights.set(names[style], new HighlightConstructor(...ranges));
+    });
+    return () => Object.values(names).forEach((name) => highlights.delete(name));
+  }, [textMarks, studyNotes, module, blocks]);
+
   const renderHeading = (text: string, level?: number | null) => {
     const sectionCode = text.match(/^(\d+\.\d+)/)?.[1];
     const id = sectionCode
@@ -1787,7 +1884,7 @@ function NativeCourseContent({
     if (
       !selection?.anchorNode ||
       !selection.rangeCount ||
-      !anchorElement?.closest(".native-course") ||
+      !anchorElement?.closest(".lesson") ||
       text.length < 3 ||
       text.length > 320
     )
