@@ -1,0 +1,204 @@
+/*
+ * Fundação visual da apostila
+ * Esta camada concentra decisões reutilizáveis. Ajustes de tela devem usar
+ * estes tokens e componentes, em vez de acrescentar exceções em globals.css.
+ */
+
+:root {
+  --layout-sidebar: clamp(272px, 22vw, 330px);
+  --layout-sidebar-collapsed: 96px;
+  --layout-gutter: clamp(28px, 5vw, 96px);
+  --layout-page-padding: clamp(20px, 5vw, 80px);
+  --reader-width: clamp(760px, 63vw, 1120px);
+  --reader-width-collapsed: clamp(800px, 70vw, 1200px);
+  --reader-content-width: min(100%, 100ch);
+  --control-height: 44px;
+  --control-radius: 14px;
+  --surface-subtle: color-mix(in srgb, var(--soft) 82%, var(--paper));
+  --surface-interactive: color-mix(in srgb, var(--turq) 9%, var(--paper));
+  --surface-complete: color-mix(in srgb, #62cc93 14%, var(--paper));
+  --border-interactive: color-mix(in srgb, var(--turq-deep) 42%, var(--line));
+}
+
+/* Uma única grade controla leitura, zoom e sidebar. */
+@media (min-width: 851px) {
+  .reader-layout {
+    width: 100%;
+    max-width: none;
+    grid-template-columns: var(--layout-sidebar) minmax(0, 1fr);
+    gap: var(--layout-gutter);
+    padding-right: var(--layout-page-padding);
+  }
+
+  .lesson {
+    width: 100%;
+    max-width: var(--reader-width);
+  }
+
+  .reader-layout.sidebar-collapsed {
+    grid-template-columns: var(--layout-sidebar-collapsed) minmax(0, 1fr);
+  }
+
+  .reader-layout.sidebar-collapsed .lesson {
+    max-width: var(--reader-width-collapsed);
+  }
+
+  .native-blocks {
+    width: var(--reader-content-width);
+    max-width: none;
+  }
+
+  .sidebar {
+    display: flex;
+    flex-direction: column;
+    width: var(--layout-sidebar);
+    height: 100dvh;
+    max-height: none;
+    overflow: hidden;
+  }
+
+  .sidebar-scroll {
+    flex: 1 1 auto;
+    height: auto !important;
+    min-height: 0;
+    padding-bottom: 24px;
+    overflow-y: auto !important;
+    overscroll-behavior: contain;
+    scrollbar-width: none;
+  }
+
+  .sidebar-scroll::-webkit-scrollbar {
+    display: none;
+  }
+
+  .sidebar-accessibility {
+    flex: 0 0 auto;
+    margin-top: auto;
+    background: var(--paper);
+  }
+
+  .sidebar.sidebar-collapsed {
+    width: var(--layout-sidebar-collapsed);
+  }
+}
+
+/* Superfícies de atividade usam borda e cor — nunca sombra decorativa. */
+.checklist,
+.compact-checklist {
+  gap: var(--space-2);
+}
+
+.checklist label,
+.compact-checklist label {
+  min-height: 68px;
+  padding: 17px 18px;
+  border-radius: var(--control-radius);
+  line-height: 1.5;
+}
+
+.checklist label:hover,
+.compact-checklist label:hover {
+  border-color: var(--border-interactive);
+  background: var(--surface-interactive);
+}
+
+.checklist label:has(input:checked),
+.compact-checklist label:has(input:checked) {
+  border-color: var(--border-interactive);
+  background: var(--surface-complete);
+}
+
+.checklist input[type="checkbox"],
+.stage-complete input[type="checkbox"],
+.validation-grid input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 20px;
+  border-radius: 6px;
+}
+
+.checklist-bento > .checklist {
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px;
+  padding: 18px;
+}
+
+.checklist-bento > .checklist label {
+  min-height: 76px;
+  padding: 18px;
+}
+
+.tool-section,
+.travel-card,
+.checklist-progress,
+.attention-panel,
+.destination-guide {
+  box-shadow: none;
+}
+
+@media (max-width: 850px) {
+  .reader-layout {
+    padding-inline: clamp(18px, 5vw, 30px);
+  }
+
+  .native-blocks {
+    width: 100%;
+  }
+
+  .sidebar nav {
+    position: relative;
+    gap: 10px;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+  }
+
+  .sidebar nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .sidebar nav .nav-section {
+    flex: 0 0 min(138px, 37vw);
+    scroll-snap-align: start;
+  }
+
+  .sidebar nav .module-nav-row,
+  .sidebar nav .nav-item {
+    width: 100%;
+  }
+
+  .sidebar nav .nav-item {
+    min-height: 62px;
+    padding: 11px 10px;
+  }
+
+  .sidebar nav .nav-item span {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-height: 1.25;
+  }
+
+  .sidebar nav .module-completion {
+    display: none;
+  }
+}
+
+@media (max-width: 700px) {
+  .checklist-bento > .checklist,
+  .compact-checklist {
+    grid-template-columns: 1fr;
+  }
+
+  .checklist-bento > .checklist {
+    gap: 10px;
+    padding: 14px;
+  }
+
+  .checklist label,
+  .checklist-bento > .checklist label,
+  .compact-checklist label {
+    min-height: 60px;
+    padding: 16px;
+  }
+}
