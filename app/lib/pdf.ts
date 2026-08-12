@@ -2,7 +2,8 @@ import { jsPDF } from "jspdf";
 
 export type PdfStage = { date: string; status: string };
 export type PdfSummary = { destination: string; source: string; cvi: string; importPermit: string; arrivalNotice: string; notes: string };
-export type PdfProfile = { name: string; checks: boolean[]; timeline: Record<string, PdfStage>; summary: PdfSummary };
+export type PdfTravel = { tutor?: string; pet?: string; destination?: string; date?: string; modality?: string; airline?: string };
+export type PdfProfile = { name: string; checks: boolean[]; timeline: Record<string, PdfStage>; summary: PdfSummary; travel?: PdfTravel };
 
 type Rgb = [number, number, number];
 
@@ -105,11 +106,30 @@ function statusColor(status: string): Rgb {
   return color.pale;
 }
 
-export function downloadChecklistPdf(profile: PdfProfile, items: string[]) {
+function travelFields(doc: jsPDF, profile: PdfProfile, y: number) {
+  y = sectionTitle(doc, "Dados da viagem", y);
+  const travel = profile.travel || {};
+  const fields: Array<[string, string]> = [
+    ["Tutor", travel.tutor || ""], ["Pet", travel.pet || ""],
+    ["Destino", travel.destination || ""], ["Data", travel.date || ""],
+    ["Modalidade", travel.modality || ""], ["Companhia aérea", travel.airline || ""],
+  ];
+  fields.forEach(([label, value], index) => {
+    const x = margin + (index % 2) * 88;
+    const yy = y + Math.floor(index / 2) * 17;
+    setText(doc, color.muted, 6.8, "bold"); doc.text(label.toUpperCase(), x, yy);
+    doc.setDrawColor(...color.line); doc.line(x, yy + 9, x + 78, yy + 9);
+    if (value) { setText(doc, color.teal, 8.8); doc.text(value, x, yy + 6.5); }
+  });
+  return y + 57;
+}
+
+export function downloadChecklistPdf(profile: PdfProfile, items: string[], attention: string[] = []) {
   const toolLabel = "Checklist de embarque";
   const title = "Checklist Passageiro Pet";
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   let y = drawHeader(doc, toolLabel, title, profile);
+  y = travelFields(doc, profile, y);
   y = sectionTitle(doc, "Conferência antes do embarque", y);
 
   items.forEach((item, index) => {
@@ -132,6 +152,16 @@ export function downloadChecklistPdf(profile: PdfProfile, items: string[]) {
     y += Math.max(12, lines.length * 4.6 + 6);
   });
 
+  if (attention.length) {
+    y = addPage(doc, toolLabel, title, profile);
+    y = sectionTitle(doc, "Pontos de atenção", y);
+    attention.forEach((point, index) => {
+      softCard(doc, margin, y - 6, contentWidth, 18);
+      setText(doc, color.turquoise, 8, "bold"); doc.text(String(index + 1).padStart(2, "0"), margin + 7, y + 2);
+      setText(doc, color.teal, 9); doc.text(doc.splitTextToSize(point, contentWidth - 28), margin + 19, y + 2);
+      y += 23;
+    });
+  }
   if (y > 246) y = addPage(doc, toolLabel, title, profile);
   softCard(doc, margin, y + 4, contentWidth, 24);
   setText(doc, color.turquoise, 7.5, "bold");
@@ -145,6 +175,7 @@ export function downloadTimelinePdf(profile: PdfProfile, stages: string[]) {
   const title = "Cronograma Sanitário";
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   let y = drawHeader(doc, toolLabel, title, profile);
+  y = travelFields(doc, profile, y);
   y = sectionTitle(doc, "Etapas do processo", y);
 
   stages.forEach((stage, index) => {
@@ -162,8 +193,8 @@ export function downloadTimelinePdf(profile: PdfProfile, stages: string[]) {
     const stageLines = doc.splitTextToSize(stage, 82);
     doc.text(stageLines, margin + 17, y + (stageLines.length > 1 ? -1.6 : 1.5));
     setText(doc, color.muted, 7.5);
-    const date = data.date ? new Intl.DateTimeFormat("pt-BR", { timeZone: "UTC" }).format(new Date(`${data.date}T00:00:00`)) : "Data a definir";
-    doc.text(date, 143, y + 1.5, { align: "right" });
+    const date = data.date ? new Intl.DateTimeFormat("pt-BR", { timeZone: "UTC" }).format(new Date(`${data.date}T00:00:00`)) : "";
+    if (date) doc.text(date, 143, y + 1.5, { align: "right" }); else { doc.setDrawColor(...color.line); doc.line(108, y + 3.5, 143, y + 3.5); }
     doc.setFillColor(...statusColor(data.status));
     doc.roundedRect(148, y - 4, 44, 8, 4, 4, "F");
     setText(doc, color.teal, 6.5, "bold");
@@ -191,13 +222,14 @@ export function downloadSummaryPdf(profile: PdfProfile) {
     setText(doc, color.turquoise, 7.2, "bold");
     doc.text(label.toUpperCase(), margin + 7, y);
     setText(doc, color.teal, 10, "bold");
-    const lines = doc.splitTextToSize(value || "A confirmar", contentWidth - 14);
-    doc.text(lines, margin + 7, y + 7);
+    const lines = value ? doc.splitTextToSize(value, contentWidth - 14) : [];
+    if (lines.length) doc.text(lines, margin + 7, y + 7); else { doc.setDrawColor(...color.line); doc.line(margin + 7, y + 9, pageWidth - margin - 7, y + 9); }
     y += Math.max(22, lines.length * 4.8 + 13);
   });
   y = sectionTitle(doc, "Observações", y + 2);
   softCard(doc, margin, y - 6, contentWidth, 48);
-  paragraph(doc, profile.summary.notes || "Nenhuma observação registrada.", y + 3, contentWidth - 14, margin + 7);
+  if (profile.summary.notes) paragraph(doc, profile.summary.notes, y + 3, contentWidth - 14, margin + 7);
+  else { doc.setDrawColor(...color.line); [y + 8, y + 17, y + 26, y + 35].forEach((lineY) => doc.line(margin + 7, lineY, pageWidth - margin - 7, lineY)); }
   finish(doc, "quadro-cvi", profile);
 }
 

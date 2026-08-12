@@ -471,12 +471,20 @@ export default function Home() {
     setProfilesReady(true);
   }, []);
   useEffect(() => {
-    const match =
-      window.location.hash.match(/^#module-(\d+)$/) ||
-      window.location.hash.match(/^#lesson-(\d+)-\d+$/);
-    if (!match) return;
-    const index = Number(match[1]) - 1;
-    if (index >= 0 && index < modules.length) setActive(index);
+    const syncLocation = () => {
+      const toolMatch = window.location.hash.match(/^#tool-(checklist|cronograma|quadro)$/);
+      if (toolMatch) {
+        setTool(toolMatch[1] as Exclude<Tool, null>);
+        return;
+      }
+      const match = window.location.hash.match(/^#module-(\d+)$/) || window.location.hash.match(/^#lesson-(\d+)-\d+$/);
+      if (!match) return;
+      const index = Number(match[1]) - 1;
+      if (index >= 0 && index < modules.length) { setTool(null); setActive(index); }
+    };
+    syncLocation();
+    window.addEventListener("hashchange", syncLocation);
+    return () => window.removeEventListener("hashchange", syncLocation);
   }, []);
   useEffect(() => {
     if (!profilesReady) return;
@@ -706,8 +714,16 @@ export default function Home() {
   };
   const selectTool = (nextTool: Exclude<Tool, null>) => {
     setTool(nextTool);
+    window.history.replaceState(null, "", `#tool-${nextTool}`);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
+  const clearAllStudyItems = () => {
+    if (!studyItems.length || !window.confirm("Limpar todas as anotações, marcações e destaques deste perfil?")) return;
+    updateActiveProfile((profile) => ({ ...profile, annotations: {}, textMarks: {}, highlights: {}, studyNotes: [] }));
+  };
+  const clearChecklistTool = () => updateActiveProfile((profile) => ({ ...profile, checks: checklist.map(() => false), travel: { ...createProfile(profile.name).travel } }));
+  const clearTimelineTool = () => updateActiveProfile((profile) => ({ ...profile, timeline: {}, technicalChecks: technicalChecklist.map(() => false), validationChecks: validationDocuments.map(() => false), validationNotes: {}, travel: { ...createProfile(profile.name).travel } }));
+  const clearSummaryTool = () => updateActiveProfile((profile) => ({ ...profile, summary: { ...emptySummary } }));
   const createNewProfile = () => {
     const name = profileName.trim();
     if (!name) return;
@@ -1102,12 +1118,13 @@ export default function Home() {
                 <b>FERRAMENTAS</b>
                 <span>3 recursos</span>
               </div>
-              <button
+              <a
                 className={
                   tool === "checklist"
                     ? "tool-link tool-checklist selected"
                     : "tool-link tool-checklist"
                 }
+                href="#tool-checklist"
                 onClick={() => selectTool("checklist")}
               >
                 <span className="tool-icon-wrap">
@@ -1117,13 +1134,14 @@ export default function Home() {
                   <strong>Checklist</strong>
                   <small>Passageiro pet</small>
                 </span>
-              </button>
-              <button
+              </a>
+              <a
                 className={
                   tool === "cronograma"
                     ? "tool-link tool-cronograma selected"
                     : "tool-link tool-cronograma"
                 }
+                href="#tool-cronograma"
                 onClick={() => selectTool("cronograma")}
               >
                 <span className="tool-icon-wrap">
@@ -1133,13 +1151,14 @@ export default function Home() {
                   <strong>Cronograma</strong>
                   <small>Planejamento sanitário</small>
                 </span>
-              </button>
-              <button
+              </a>
+              <a
                 className={
                   tool === "quadro"
                     ? "tool-link tool-quadro selected"
                     : "tool-link tool-quadro"
                 }
+                href="#tool-quadro"
                 onClick={() => selectTool("quadro")}
               >
                 <span className="tool-icon-wrap">
@@ -1149,7 +1168,7 @@ export default function Home() {
                   <strong>Quadro de CVI</strong>
                   <small>Regras por destino</small>
                 </span>
-              </button>
+              </a>
             </section>
             <details className="study-library">
               <summary>
@@ -1161,6 +1180,11 @@ export default function Home() {
                 <ChevronDown size={14} aria-hidden="true" />
               </summary>
               <div className="study-library-list">
+                {studyItems.length > 0 && (
+                  <button type="button" className="study-library-clear" onClick={clearAllStudyItems}>
+                    Limpar todas
+                  </button>
+                )}
                 {studyItems.length ? (
                   studyItems.slice(0, 12).map((item) => (
                     <div className="study-library-item" key={`${item.kind}-${item.id}`}>
@@ -1325,7 +1349,8 @@ export default function Home() {
               onTravelChange={(travel) =>
                 updateActiveProfile((profile) => ({ ...profile, travel }))
               }
-              onExport={() => downloadChecklistPdf(activeProfile, checklist)}
+              onExport={() => downloadChecklistPdf(activeProfile, checklist, attentionPoints)}
+              onClear={clearChecklistTool}
             />
           ) : tool === "cronograma" ? (
             <Cronograma
@@ -1359,6 +1384,7 @@ export default function Home() {
                 }))
               }
               onExport={() => downloadTimelinePdf(activeProfile, stages)}
+              onClear={clearTimelineTool}
             />
           ) : tool === "quadro" ? (
             <Quadro
@@ -1367,6 +1393,7 @@ export default function Home() {
                 updateActiveProfile((profile) => ({ ...profile, summary }))
               }
               onExport={() => downloadSummaryPdf(activeProfile)}
+              onClear={clearSummaryTool}
             />
           ) : (
             <ModulePage
@@ -1484,6 +1511,9 @@ function ModulePage({
         number={number}
         completed={moduleCompleted}
         onToggle={onToggleModule}
+        lessons={lessons}
+        completedLessons={completedLessons}
+        onToggleLesson={onToggleLesson}
       />
       <nav className="lesson-footer" aria-label="Navegação entre módulos">
         <button type="button" onClick={onPrevious} disabled={!onPrevious}>
@@ -1504,10 +1534,16 @@ function ModuleRecap({
   number,
   completed,
   onToggle,
+  lessons,
+  completedLessons,
+  onToggleLesson,
 }: {
   number: number;
   completed: boolean;
   onToggle: () => void;
+  lessons: readonly string[];
+  completedLessons: Record<string, boolean>;
+  onToggleLesson: (lesson: string) => void;
 }) {
   const recaps = [
     [
@@ -1537,32 +1573,43 @@ function ModuleRecap({
   ][number - 1];
   return (
     <section className="module-recap">
-      <p>
-        <BookOpenCheck size={15} strokeWidth={2.4} /> VOCÊ CHEGOU AO FIM DO
-        MÓDULO
-      </p>
-      <h2>{recaps[0]}</h2>
-      <span>{recaps[1]}</span>
-      <button
-        type="button"
-        className={
-          completed ? "module-finish-button done" : "module-finish-button"
-        }
-        onClick={onToggle}
-        aria-pressed={completed}
-      >
-        {completed ? (
-          <>
-            <Check size={16} strokeWidth={3} /> Módulo concluído
-          </>
-        ) : (
-          <>
-            <Check size={16} strokeWidth={3} /> Concluir módulo
-          </>
-        )}
-      </button>
+      <div className="module-recap-copy">
+        <p><BookOpenCheck size={15} strokeWidth={2.4} /> VOCÊ CHEGOU AO FIM DO MÓDULO</p>
+        <h2>{recaps[0]}</h2>
+        <span>{recaps[1]}</span>
+      </div>
+      <div className="module-recap-actions">
+        <div className="module-recap-checklist" aria-label="Checklist de fechamento do módulo">
+          {lessons.map((lesson) => {
+            const done = Boolean(completedLessons[`${number - 1}:${lesson}`]);
+            return <button type="button" key={lesson} className={done ? "done" : ""} onClick={() => onToggleLesson(lesson)} aria-pressed={done}>
+              <span><Check size={11} strokeWidth={3} /></span>{lesson}
+            </button>;
+          })}
+        </div>
+        <button type="button" className={completed ? "module-finish-button done" : "module-finish-button"} onClick={onToggle} aria-pressed={completed}>
+          <Check size={16} strokeWidth={3} /> {completed ? "Módulo concluído" : "Concluir módulo"}
+        </button>
+      </div>
     </section>
   );
+}
+
+function CopyTableButton({ rows }: { rows: readonly (readonly string[])[] }) {
+  const [copied, setCopied] = useState(false);
+  const copy = async () => {
+    const text = rows.map((row) => row.join("\t")).join("\n");
+    try { await navigator.clipboard.writeText(text); }
+    catch {
+      const textarea = document.createElement("textarea");
+      textarea.value = text; textarea.style.position = "fixed"; textarea.style.opacity = "0";
+      document.body.append(textarea); textarea.select(); document.execCommand("copy"); textarea.remove();
+    }
+    setCopied(true); window.setTimeout(() => setCopied(false), 1600);
+  };
+  return <button type="button" className="copy-table" onClick={copy} title="Copiar tabela" aria-label="Copiar tabela">
+    {copied ? <Check size={15} strokeWidth={2.7} /> : <Copy size={15} strokeWidth={2.2} />}<span>{copied ? "Copiado" : "Copiar"}</span>
+  </button>;
 }
 
 function NativeCourseContent({
@@ -1769,9 +1816,9 @@ function NativeCourseContent({
     const TopicIcon = topicIcons[module - 1] || BookOpenCheck;
     const heading =
       level === 4 ? (
-        <h4 id={id} data-reader-block={blockId}><TopicIcon className="topic-heading-icon" size={15} strokeWidth={2.25} aria-hidden="true" />{renderMarkedText(text, blockId)}</h4>
+        <h4 id={id} data-reader-block={blockId}>{renderMarkedText(text, blockId)}</h4>
       ) : level === 3 ? (
-        <h3 id={id} data-reader-block={blockId}><TopicIcon className="topic-heading-icon" size={17} strokeWidth={2.25} aria-hidden="true" />{renderMarkedText(text, blockId)}</h3>
+        <h3 id={id} data-reader-block={blockId}>{renderMarkedText(text, blockId)}</h3>
       ) : (
         <h2 id={id} data-reader-block={blockId}><TopicIcon className="topic-heading-icon" size={19} strokeWidth={2.25} aria-hidden="true" />{renderMarkedText(text, blockId)}</h2>
       );
@@ -1794,7 +1841,7 @@ function NativeCourseContent({
               </>
             ) : (
               <>
-                <Check size={14} strokeWidth={3} /> Marcar tópico
+                <Check size={14} strokeWidth={3} /> Marcar como concluído
               </>
             )}
           </button>
@@ -1968,6 +2015,7 @@ function NativeCourseContent({
       if (block.type === "table") {
         output.push(
           <div className="native-table-wrap editorial-table" key={`table-${index}`}>
+            <CopyTableButton rows={block.rows} />
             <table>
               <tbody>
                 {block.rows.map((row, rowIndex) => (
@@ -1977,7 +2025,10 @@ function NativeCourseContent({
                       const Tag = rowIndex === 0 ? "th" : "td";
                       return (
                         <Tag data-reader-block={blockId} key={blockId}>
-                          {renderMarkedText(cell, blockId)}
+                          {renderMarkedText(
+                            cell || (block.rows[0][0] === "Serviço" && cellIndex === 2 ? "Margem máxima (sugestão)" : ""),
+                            blockId,
+                          )}
                         </Tag>
                       );
                     })}
@@ -2008,6 +2059,16 @@ function NativeCourseContent({
         continue;
       }
       const blockId = `paragraph-${index}`;
+      const previousBlock = blocks[index - 1];
+      if (previousBlock?.type === "heading" && /Fluxo Resumido -- Emissão do CVI Presencial/.test(previousBlock.text)) {
+        const steps = block.text.split(/\\\s*⬇️\s*|\s*⬇️\s*/).map((step) => step.trim()).filter(Boolean);
+        output.push(
+          <ol className="process-flow" key={`flow-${index}`} data-reader-block={blockId}>
+            {steps.map((step, stepIndex) => <li key={`${stepIndex}-${step}`}><span>{String(stepIndex + 1).padStart(2, "0")}</span><p>{renderMarkedText(step, `${blockId}-${stepIndex}`)}</p></li>)}
+          </ol>,
+        );
+        continue;
+      }
       output.push(
         <p className="native-paragraph" data-reader-block={blockId} key={blockId}>
           {renderMarkedText(block.text, blockId)}
@@ -3112,12 +3173,14 @@ function Checklist({
   travel,
   onTravelChange,
   onExport,
+  onClear,
 }: {
   checks: boolean[];
   setChecks: (values: boolean[]) => void;
   travel: TravelData;
   onTravelChange: (value: TravelData) => void;
   onExport: () => void;
+  onClear: () => void;
 }) {
   const completed = checks.filter(Boolean).length;
   const update = (field: keyof TravelData, value: string) =>
@@ -3221,7 +3284,7 @@ function Checklist({
         <div className="tool-actions">
           <button
             className="clear"
-            onClick={() => setChecks(checklist.map(() => false))}
+            onClick={onClear}
           >
             Limpar checklist
           </button>
@@ -3258,6 +3321,7 @@ function Cronograma({
   validationNotes,
   setValidationNotes,
   onExport,
+  onClear,
 }: {
   value: Record<string, StageData>;
   onChange: (value: Record<string, StageData>) => void;
@@ -3270,6 +3334,7 @@ function Cronograma({
   validationNotes: Record<string, string>;
   setValidationNotes: (value: Record<string, string>) => void;
   onExport: () => void;
+  onClear: () => void;
 }) {
   const updateStage = (stage: string, update: Partial<StageData>) => {
     const current: StageData = value[stage] || {
@@ -3419,6 +3484,7 @@ function Cronograma({
           </div>
         </section>
         <div className="tool-actions">
+          <button className="clear" onClick={onClear}>Limpar informações</button>
           <button className="export-pdf" onClick={onExport}>
             Baixar PDF personalizado
           </button>
@@ -3432,10 +3498,12 @@ function Quadro({
   value,
   onChange,
   onExport,
+  onClear,
 }: {
   value: SummaryData;
   onChange: (value: SummaryData) => void;
   onExport: () => void;
+  onClear: () => void;
 }) {
   const update = (field: keyof SummaryData, nextValue: string) =>
     onChange({ ...value, [field]: nextValue });
@@ -3541,6 +3609,7 @@ function Quadro({
           </div>
         </section>
         <div className="tool-actions">
+          <button className="clear" onClick={onClear}>Limpar informações</button>
           <button className="export-pdf" onClick={onExport}>
             Baixar PDF personalizado
           </button>
@@ -3567,6 +3636,7 @@ function DestinationTable({ rows }: { rows: readonly (readonly string[])[] }) {
     );
   return (
     <div className="destination-table-wrap">
+      <CopyTableButton rows={rows} />
       <table>
         <thead>
           <tr>
