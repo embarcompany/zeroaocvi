@@ -1757,13 +1757,15 @@ function NativeCourseContent({
       : false;
     const noteKey = lesson ? `${module - 1}:${lesson}` : "";
     const blockId = `heading-${sectionCode || text.replace(/[^a-z0-9]+/gi, "-").slice(0, 48)}`;
+    const topicIcons = [Plane, ShieldCheck, CalendarDays, SquareStack, FileCheck2, BriefcaseBusiness];
+    const TopicIcon = topicIcons[module - 1] || BookOpenCheck;
     const heading =
       level === 4 ? (
-        <h4 id={id} data-reader-block={blockId}>{renderMarkedText(text, blockId)}</h4>
+        <h4 id={id} data-reader-block={blockId}><TopicIcon className="topic-heading-icon" size={15} strokeWidth={2.25} aria-hidden="true" />{renderMarkedText(text, blockId)}</h4>
       ) : level === 3 ? (
-        <h3 id={id} data-reader-block={blockId}>{renderMarkedText(text, blockId)}</h3>
+        <h3 id={id} data-reader-block={blockId}><TopicIcon className="topic-heading-icon" size={17} strokeWidth={2.25} aria-hidden="true" />{renderMarkedText(text, blockId)}</h3>
       ) : (
-        <h2 id={id} data-reader-block={blockId}>{renderMarkedText(text, blockId)}</h2>
+        <h2 id={id} data-reader-block={blockId}><TopicIcon className="topic-heading-icon" size={19} strokeWidth={2.25} aria-hidden="true" />{renderMarkedText(text, blockId)}</h2>
       );
     if (!lesson) return heading;
     return (
@@ -1928,13 +1930,26 @@ function NativeCourseContent({
         const title = lines.shift() || "Nota";
         const body = lines.join("\n");
         const summary = /resumo dos principais|checklist do conteúdo estudado/i.test(title);
+        const tone = calloutTone(title);
+        const CalloutIcon = summary
+          ? BookOpenCheck
+          : tone === "warning"
+            ? AlertTriangle
+            : tone === "tip"
+              ? ZapOff
+              : tone === "important"
+                ? ShieldCheck
+                : FileText;
         output.push(
           <section
-            className={summary ? "editorial-summary" : `editorial-callout ${calloutTone(title)}`}
+            className={summary ? "editorial-summary" : `editorial-callout ${tone}`}
             data-reader-block={`table-${index}-0-0`}
             key={`single-table-${index}`}
           >
-            <p>{summary ? "EM RESUMO" : title}</p>
+            <div className="editorial-callout-head">
+              <CalloutIcon size={18} strokeWidth={2.2} aria-hidden="true" />
+              <p>{summary ? "EM RESUMO" : title}</p>
+            </div>
             <div>{body}</div>
           </section>,
         );
@@ -1975,6 +1990,7 @@ function NativeCourseContent({
                   alt={`Ilustração editorial para ${block.text}`}
                   loading="lazy"
                 />
+                <figcaption>Imagem de apoio para {block.text}</figcaption>
               </figure>
             )}
           </div>,
