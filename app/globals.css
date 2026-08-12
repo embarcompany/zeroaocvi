@@ -70,7 +70,7 @@
 .lesson:has(.module-reading-progress){padding-top:43px!important}.module-reading-progress{pointer-events:none}.module-reading-copy span,.module-reading-copy strong{align-self:start}@media(max-width:850px){.lesson:has(.module-reading-progress){padding-top:41px!important}}
 
 /* A régua usa o mesmo eixo da coluna de leitura, não o da janela inteira. */
-.module-reading-progress{right:auto!important;left:50%!important;width:min(830px,calc(100vw - 40px))!important;transform:translateX(-50%)}.reader-layout.sidebar-collapsed .module-reading-progress{left:50%!important}@media(max-width:850px){.module-reading-progress{width:calc(100vw - 40px)!important;left:50%!important}}
+.module-reading-progress{position:sticky!important;top:0!important;right:auto!important;left:auto!important;width:100%!important;max-width:none!important;transform:none!important}.reader-layout.sidebar-collapsed .module-reading-progress{left:auto!important}.module-reading-copy span{padding-left:8px}.module-reading-copy strong{padding-right:8px}@media(max-width:850px){.module-reading-progress{left:auto!important;width:100%!important}.module-reading-copy span{padding-left:5px}.module-reading-copy strong{padding-right:5px}}
 
 /* O item inteiro já abre o acordeão; a seta interna é redundante. */
 .module-nav-row .nav-chevron{display:none!important}
