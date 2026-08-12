@@ -2103,11 +2103,12 @@ function NativeCourseContent({
                 onChange={(event) => setNoteDraft(event.target.value)}
                 placeholder="O que você quer lembrar neste trecho?"
               />
-              <div>
-                <button type="submit">Salvar nota</button>
+              <div className="selection-note-actions">
+                <button className="note-save" type="submit">Salvar nota</button>
                 {selectedNote && (
                   <button
                     type="button"
+                    className="note-delete"
                     onClick={() => {
                       onRemoveStudyNote(selectedNote.id);
                       setNoteDraft("");
@@ -2117,7 +2118,11 @@ function NativeCourseContent({
                     Excluir
                   </button>
                 )}
-                <button type="button" onClick={() => setNoteEditorOpen(false)}>
+                <button
+                  type="button"
+                  className="note-cancel"
+                  onClick={() => setNoteEditorOpen(false)}
+                >
                   Cancelar
                 </button>
               </div>
