@@ -2017,6 +2017,50 @@ function NativeCourseContent({
         const mythTruthBody = mythTruth
           ? [mythTruth[2], body].filter(Boolean).join("\n")
           : body;
+        const learningSummary = /resumo dos principais/i.test(title);
+        const studyChecklist = /checklist do conte\u00fado estudado/i.test(title);
+        if (learningSummary || studyChecklist) {
+          const bodyLines = body.split("\n").filter(Boolean);
+          const checklistLines = bodyLines.filter((line) => /^(?:[\u2022\u25cf\u2610\u2713\u2714]|Sei explicar)/.test(line.trim()));
+          const introLines = bodyLines.filter((line) => !checklistLines.includes(line));
+          if (studyChecklist) {
+            output.push(
+              <section className="editorial-module-checklist" key={`study-checklist-${index}`}>
+                <div className="editorial-module-section-head">
+                  <BookOpenCheck size={18} strokeWidth={2.2} aria-hidden="true" />
+                  <p>CHECKLIST DO CONTEÚDO ESTUDADO</p>
+                </div>
+                <p className="editorial-module-section-copy">Marque o que você já consegue explicar e aplicar.</p>
+                <div className="editorial-module-checklist-items">
+                  {checklistLines.map((line) => {
+                    const code = line.match(/(\d+\.\d+)/)?.[1];
+                    const lesson = code ? lessons.find((item) => item.startsWith(code)) : undefined;
+                    const done = lesson ? Boolean(completedLessons[`${module - 1}:${lesson}`]) : false;
+                    const label = line.replace(/^\s*[\u2022\u25cf\u2610\u2713\u2714]\s*/, "");
+                    return (
+                      <button type="button" className={done ? "done" : ""} key={line} onClick={() => lesson && onToggleLesson(lesson)} aria-pressed={done} disabled={!lesson}>
+                        <span aria-hidden="true">{done && <Check size={12} strokeWidth={3} />}</span>
+                        {label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </section>,
+            );
+          } else {
+            output.push(
+              <section className="editorial-module-summary-text" key={`summary-${index}`}>
+                <div className="editorial-module-section-head">
+                  <BookOpenCheck size={18} strokeWidth={2.2} aria-hidden="true" />
+                  <p>EM RESUMO</p>
+                </div>
+                {introLines.map((line, lineIndex) => <p className="editorial-module-section-copy" key={`${line}-${lineIndex}`}>{line}</p>)}
+                <ul>{checklistLines.map((line) => <li key={line}>{line.replace(/^\s*[\u2022\u25cf\u2610\u2713\u2714]\s*/, "")}</li>)}</ul>
+              </section>,
+            );
+          }
+          continue;
+        }
         const summary = /resumo dos principais|checklist do conteúdo estudado/i.test(title);
         const tone = calloutTone(title);
         const CalloutIcon = mythTruthKind === "mito"

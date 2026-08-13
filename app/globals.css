@@ -251,3 +251,28 @@ details.sidebar-note{display:block!important;margin:15px 0 6px;padding:11px 12px
 :root[data-theme="dark"] .myth-truth--verdade{border-color:#39765e;border-left-color:#71d8ac;background:#173f35;color:#d5ebdf}
 :root[data-theme="dark"] .myth-truth--verdade .myth-truth-head{background:#245940;color:#91edbd}
 @media(max-width:480px){.myth-truth{gap:10px;padding:16px}.myth-truth>div:last-child{font-size:13px;line-height:1.65}}
+
+/* Fechamento dos módulos: síntese em texto e checklist de domínio interativa. */
+.editorial-module-summary-text,.editorial-module-checklist{max-width:var(--reader-measure);margin:var(--space-5) 0}
+.editorial-module-section-head{display:flex;align-items:center;gap:8px;margin-bottom:10px;color:var(--turq-deep)}
+.editorial-module-section-head p{margin:0!important;color:inherit!important;font-size:10px!important;font-weight:800!important;letter-spacing:1.15px!important}
+.editorial-module-section-copy{margin:0 0 13px!important;color:#52777a!important;font-size:13px!important;line-height:1.7!important}
+.editorial-module-summary-text ul{display:grid;gap:8px;margin:0;padding:0;list-style:none}
+.editorial-module-summary-text li{position:relative;padding-left:22px;color:#416d70;font-size:13px;line-height:1.7}
+.editorial-module-summary-text li:before{content:"";position:absolute;top:.72em;left:3px;width:7px;height:7px;border-radius:50%;background:var(--turq-deep)}
+.editorial-module-checklist{padding-top:var(--space-3);border-top:1px solid var(--line)}
+.editorial-module-checklist-items{display:grid;gap:7px}
+.editorial-module-checklist-items button{display:grid;grid-template-columns:20px minmax(0,1fr);gap:10px;align-items:start;width:100%;padding:8px 2px;border:0;border-radius:8px;background:transparent;color:#416d70;font:600 13px/1.6 Montserrat;text-align:left;cursor:pointer;transition:background-color .18s ease,color .18s ease}
+.editorial-module-checklist-items button:hover{background:#f2fbf9;color:var(--teal)}
+.editorial-module-checklist-items button>span{display:grid;place-items:center;width:19px;height:19px;margin-top:1px;border:1px solid #9dd8d1;border-radius:5px;color:transparent;transition:border-color .18s ease,background-color .18s ease,color .18s ease}
+.editorial-module-checklist-items button.done{color:#177451}
+.editorial-module-checklist-items button.done>span{border-color:#27ae76;background:#27ae76;color:#fff}
+.editorial-module-checklist-items button:disabled{cursor:default;opacity:.65}
+:root[data-theme="dark"] .editorial-module-section-copy,:root[data-theme="dark"] .editorial-module-summary-text li{color:#bdd4d1!important}
+:root[data-theme="dark"] .editorial-module-summary-text li:before{background:#71d8ac}
+:root[data-theme="dark"] .editorial-module-checklist{border-color:#35666a}
+:root[data-theme="dark"] .editorial-module-checklist-items button{color:#c9dddb}
+:root[data-theme="dark"] .editorial-module-checklist-items button:hover{background:#123e43;color:#e8f8f5}
+:root[data-theme="dark"] .editorial-module-checklist-items button>span{border-color:#4a898a}
+:root[data-theme="dark"] .editorial-module-checklist-items button.done{color:#91edbd}
+:root[data-theme="dark"] .editorial-module-checklist-items button.done>span{border-color:#71d8ac;background:#71d8ac;color:#07363a}
