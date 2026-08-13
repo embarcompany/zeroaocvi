@@ -286,3 +286,6 @@ details.sidebar-note{display:block!important;margin:15px 0 6px;padding:11px 12px
 :root[data-theme="dark"] .method.process-flow>ol li{border-color:#35666a!important;background:#0b3035!important;color:#d6e9e6!important}
 :root[data-theme="dark"] .method.process-flow>ol li:before{border-color:#71d8ac!important;background:#0b3035!important;color:#71d8ac!important}
 @media(max-width:480px){.method.process-flow{padding:19px 16px}.method.process-flow>ol li{padding:13px 12px 13px 46px!important}.method.process-flow>ol li:before{top:13px!important;left:12px!important}}
+
+/* Fluxo com número renderizado no próprio item: evita contador duplicado. */
+.process-flow>li:before{content:none!important;display:none!important}

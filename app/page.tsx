@@ -2160,7 +2160,10 @@ function NativeCourseContent({
       const blockId = `paragraph-${index}`;
       const previousBlock = blocks[index - 1];
       if (previousBlock?.type === "heading" && /Fluxo Resumido -- Emissão do CVI Presencial/.test(previousBlock.text)) {
-        const steps = block.text.split(/\\\s*⬇️\s*|\s*⬇️\s*/).map((step) => step.trim()).filter(Boolean);
+        const steps = block.text
+          .split(/\\\s*⬇️\s*|\s*⬇️\s*/)
+          .map((step) => step.trim().replace(/^\\\s*/, ""))
+          .filter(Boolean);
         output.push(
           <ol className="process-flow" key={`flow-${index}`} data-reader-block={blockId}>
             {steps.map((step, stepIndex) => <li key={`${stepIndex}-${step}`}><span>{String(stepIndex + 1).padStart(2, "0")}</span><p>{renderMarkedText(step, `${blockId}-${stepIndex}`)}</p></li>)}
