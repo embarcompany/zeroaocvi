@@ -1717,8 +1717,22 @@ function NativeCourseContent({
           : Promise.reject(new Error("content-unavailable")),
       )
       .then((data) => {
-        if (active)
-          setBlocks(data.blocks.filter((block) => block.module === module));
+        if (active) {
+          const moduleBlocks = data.blocks.filter((block) => block.module === module);
+          const nextModuleMarker = new RegExp(`^MÓDULO\\s+${module + 1}\\b`, "i");
+          const nextModuleIndex = moduleBlocks.findIndex(
+            (block) =>
+              block.type === "table" &&
+              block.rows.some((row) =>
+                row.some((cell) => nextModuleMarker.test(cell.trim())),
+              ),
+          );
+          setBlocks(
+            nextModuleIndex >= 0
+              ? moduleBlocks.slice(0, nextModuleIndex)
+              : moduleBlocks,
+          );
+        }
       })
       .catch(() => {
         if (active) setBlocks([]);
