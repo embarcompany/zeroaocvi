@@ -17,6 +17,7 @@ import {
   Eraser,
   Highlighter,
   MapPin,
+  Menu,
   Moon,
   MessageSquarePlus,
   PawPrint,
@@ -365,6 +366,7 @@ export default function Home() {
   const [active, setActive] = useState(0);
   const [expandedModule, setExpandedModule] = useState<number | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [tool, setTool] = useState<Tool>(null);
   const [profiles, setProfiles] = useState<ReaderProfile[]>([
     createProfile("Meu processo Embarpet"),
@@ -711,9 +713,11 @@ export default function Home() {
           ?.scrollIntoView({ behavior: "smooth", block: "start" }),
       120,
     );
+    setMobileSidebarOpen(false);
   };
   const selectTool = (nextTool: Exclude<Tool, null>) => {
     setTool(nextTool);
+    setMobileSidebarOpen(false);
     window.history.replaceState(null, "", `#tool-${nextTool}`);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -945,12 +949,18 @@ export default function Home() {
         }
       >
         <aside
-          className={sidebarCollapsed ? "sidebar sidebar-collapsed" : "sidebar"}
+          className={`${sidebarCollapsed ? "sidebar sidebar-collapsed" : "sidebar"}${mobileSidebarOpen ? " mobile-sidebar-open" : ""}`}
         >
           <button
             type="button"
             className="sidebar-brand-logo"
-            onClick={() => setSidebarCollapsed((value) => !value)}
+            onClick={() => {
+              if (window.matchMedia("(max-width: 850px)").matches) {
+                setMobileSidebarOpen((value) => !value);
+                return;
+              }
+              setSidebarCollapsed((value) => !value);
+            }}
             aria-label={
               sidebarCollapsed
                 ? "Expandir menu lateral"
@@ -976,7 +986,21 @@ export default function Home() {
               aria-hidden="true"
             />
           </button>
-          <div className="sidebar-scroll">
+          <button
+            type="button"
+            className="mobile-sidebar-trigger"
+            onClick={() => setMobileSidebarOpen((value) => !value)}
+            aria-expanded={mobileSidebarOpen}
+            aria-controls="mobile-course-navigation"
+          >
+            <Menu size={18} aria-hidden="true" />
+            <span>
+              <b>Sumário da apostila</b>
+              <small>Módulo {String(active + 1).padStart(2, "0")} · {progress}% concluído</small>
+            </span>
+            <ChevronDown size={16} aria-hidden="true" />
+          </button>
+          <div className="sidebar-scroll" id="mobile-course-navigation">
             <div className="sidebar-head">
               <p className="side-label">SEU PERCURSO</p>
               <div className="progress-copy">
