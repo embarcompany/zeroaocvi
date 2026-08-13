@@ -7,6 +7,8 @@ import {
   BriefcaseBusiness,
   CalendarDays,
   Check,
+  CircleCheck,
+  CircleX,
   ChevronDown,
   ChevronRight,
   ClipboardCheck,
@@ -2010,10 +2012,19 @@ function NativeCourseContent({
         const lines = cell.split("\n").filter(Boolean);
         const title = lines.shift() || "Nota";
         const body = lines.join("\n");
+        const mythTruth = title.match(/^\s*(MITO|VERDADE)\s+(.+)$/i);
+        const mythTruthKind = mythTruth?.[1].toLocaleLowerCase("pt-BR");
+        const mythTruthBody = mythTruth
+          ? [mythTruth[2], body].filter(Boolean).join("\n")
+          : body;
         const summary = /resumo dos principais|checklist do conteúdo estudado/i.test(title);
         const tone = calloutTone(title);
-        const CalloutIcon = summary
-          ? BookOpenCheck
+        const CalloutIcon = mythTruthKind === "mito"
+          ? CircleX
+          : mythTruthKind === "verdade"
+            ? CircleCheck
+            : summary
+              ? BookOpenCheck
           : tone === "warning"
             ? AlertTriangle
             : tone === "tip"
@@ -2023,15 +2034,21 @@ function NativeCourseContent({
                 : FileText;
         output.push(
           <section
-            className={summary ? "editorial-summary" : `editorial-callout ${tone}`}
+            className={
+              mythTruthKind
+                ? `myth-truth myth-truth--${mythTruthKind}`
+                : summary
+                  ? "editorial-summary"
+                  : `editorial-callout ${tone}`
+            }
             data-reader-block={`table-${index}-0-0`}
             key={`single-table-${index}`}
           >
-            <div className="editorial-callout-head">
+            <div className={mythTruthKind ? "myth-truth-head" : "editorial-callout-head"}>
               <CalloutIcon size={18} strokeWidth={2.2} aria-hidden="true" />
-              <p>{summary ? "EM RESUMO" : title}</p>
+              <p>{summary ? "EM RESUMO" : mythTruth ? mythTruth[1].toUpperCase() : title}</p>
             </div>
-            <div>{body}</div>
+            <div>{mythTruthBody}</div>
           </section>,
         );
         continue;

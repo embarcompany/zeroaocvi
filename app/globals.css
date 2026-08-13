@@ -236,3 +236,18 @@ details.sidebar-note{display:block!important;margin:15px 0 6px;padding:11px 12px
   .objective,.method,.warning,.editorial-callout,.editorial-summary{padding:18px!important}
   .lesson-lead{font-size:15px!important;line-height:1.7!important}
 }
+
+/* Mito x Verdade: comparação imediata, com semântica visual de acerto e erro. */
+.myth-truth{display:grid;gap:12px;max-width:var(--reader-measure);margin:var(--space-4) 0;padding:19px 22px;border:1px solid;border-left-width:5px;border-radius:0 16px 16px 0}
+.myth-truth-head{display:inline-flex;align-items:center;gap:7px;width:max-content;max-width:100%;padding:6px 9px;border-radius:999px;font-size:10px;font-weight:800;letter-spacing:1.05px;line-height:1}
+.myth-truth-head p{margin:0!important;color:inherit!important;font-size:10px!important;font-weight:800!important;letter-spacing:1.05px!important;line-height:1!important}
+.myth-truth>div:last-child{color:inherit;font-size:14px;font-weight:600;line-height:1.7;white-space:pre-line}
+.myth-truth--mito{border-color:#f1c5c0;border-left-color:#d7554d;background:#fff3f1;color:#673733}
+.myth-truth--mito .myth-truth-head{background:#f9d8d4;color:#bd3e37}
+.myth-truth--verdade{border-color:#b9e4cc;border-left-color:#1c9464;background:#f0fbf5;color:#1b5540}
+.myth-truth--verdade .myth-truth-head{background:#d4f2df;color:#13744d}
+:root[data-theme="dark"] .myth-truth--mito{border-color:#7d4a49;border-left-color:#ef8379;background:#402b2d;color:#f6d9d5}
+:root[data-theme="dark"] .myth-truth--mito .myth-truth-head{background:#5b3639;color:#ffaba2}
+:root[data-theme="dark"] .myth-truth--verdade{border-color:#39765e;border-left-color:#71d8ac;background:#173f35;color:#d5ebdf}
+:root[data-theme="dark"] .myth-truth--verdade .myth-truth-head{background:#245940;color:#91edbd}
+@media(max-width:480px){.myth-truth{gap:10px;padding:16px}.myth-truth>div:last-child{font-size:13px;line-height:1.65}}
