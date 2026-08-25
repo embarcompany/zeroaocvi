@@ -1638,6 +1638,25 @@ function CopyTableButton({ rows }: { rows: readonly (readonly string[])[] }) {
   </button>;
 }
 
+function PricingCards({ rows }: { rows: string[][] }) {
+  const [, ...services] = rows;
+  return (
+    <section className="pricing-cards" aria-label="Sugestão comercial de precificação">
+      {services.map(([service, suggested, maximum]) => (
+        <article className="pricing-card" key={service}>
+          <p className="pricing-card-label">SERVIÇO</p>
+          <h3>{service}</h3>
+          <div className="pricing-card-values">
+            <span className="pricing-card-reference">{maximum || "Valor a definir"}</span>
+            <strong>{suggested}</strong>
+          </div>
+          <small>Referência comercial; ajuste conforme escopo e complexidade.</small>
+        </article>
+      ))}
+    </section>
+  );
+}
+
 function NativeCourseContent({
   module,
   lessons,
@@ -2112,6 +2131,10 @@ function NativeCourseContent({
         continue;
       }
       if (block.type === "table") {
+        if (module === 6 && block.rows[0]?.[0] === "Serviço") {
+          output.push(<PricingCards rows={block.rows} key={`pricing-${index}`} />);
+          continue;
+        }
         output.push(
           <div className="native-table-wrap editorial-table" key={`table-${index}`}>
             <CopyTableButton rows={block.rows} />
