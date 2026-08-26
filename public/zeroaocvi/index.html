@@ -2066,12 +2066,13 @@
     .faq-body {
       max-height: 0;
       overflow: hidden;
-      transition: max-height 0.35s ease, padding 0.35s ease;
+      transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), padding 0.35s ease;
     }
 
     .faq-row.active .faq-body {
-      max-height: 250px;
+      max-height: 900px;
       padding-top: 14px;
+      padding-bottom: 10px;
     }
 
     .faq-answer-text {
