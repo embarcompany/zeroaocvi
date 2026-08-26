@@ -1960,10 +1960,31 @@
       isEngagedByTime = true;
     }, 15000);
 
-            // 2. Engajamento por Scroll com requestAnimationFrame, listener passivo e proteção contra cliques em botões
+            // 2. Carregamento sob demanda da fonte decorativa Caveat (Zero impacto no LCP / Critical Path)
+    function loadCaveatFont() {
+      if (document.getElementById('caveat-font-face')) return;
+      const style = document.createElement('style');
+      style.id = 'caveat-font-face';
+      style.textContent = "@font-face{font-family:'Caveat';font-style:normal;font-weight:700;font-display:swap;src:url('/assets/fonts/caveat-subset.woff2') format('woff2');}";
+      document.head.appendChild(style);
+    }
+    const videoSection = document.querySelector('.video-pitch-frame') || document.querySelector('#video-pitch-card');
+    if (videoSection && 'IntersectionObserver' in window) {
+      const fontObserver = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting) {
+          loadCaveatFont();
+          fontObserver.disconnect();
+        }
+      }, { rootMargin: '300px' });
+      fontObserver.observe(videoSection);
+    } else {
+      window.addEventListener('scroll', loadCaveatFont, { once: true, passive: true });
+    }
+
+    // 3. Engajamento por Scroll com Zero Reflow (medição deferida para IdleCallback)
     let scrollScheduled = false;
     let docScrollHeight = 0;
-    let winHeight = window.innerHeight;
+    let winHeight = 0;
     let isProgrammaticScroll = false;
     let programmaticScrollTimer = null;
 
@@ -1975,7 +1996,6 @@
       }, 1600);
     }
 
-    // Intercepta todos os links de âncora interna para não disparar exit intent durante o scroll suave
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
       anchor.addEventListener('click', suppressExitIntentOnNav, { passive: true });
     });
@@ -1985,8 +2005,13 @@
       winHeight = window.innerHeight;
     }
 
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(updateScrollMetrics);
+    } else {
+      setTimeout(updateScrollMetrics, 400);
+    }
+
     window.addEventListener('resize', updateScrollMetrics, { passive: true });
-    window.addEventListener('load', updateScrollMetrics, { once: true });
 
     let lastScrollY = window.scrollY;
     let lastScrollTime = Date.now();
