@@ -650,17 +650,17 @@
 
     @media (max-width: 640px) {
       .top-launch-bar {
-        padding: 6px 8px;
-        font-size: 0.74rem;
+        padding: 6px 4px;
+        font-size: clamp(0.68rem, 2.8vw, 0.74rem);
       }
       .top-launch-container {
-        gap: 6px;
+        gap: 5px;
         flex-wrap: nowrap;
         justify-content: center;
       }
       .top-launch-badge {
-        font-size: 0.62rem;
-        padding: 2px 6px;
+        font-size: 0.60rem;
+        padding: 2px 5px;
       }
       .top-launch-desc-desktop {
         display: none;
@@ -671,7 +671,13 @@
       }
       .top-launch-link {
         white-space: nowrap;
-        font-size: 0.74rem;
+        font-size: clamp(0.68rem, 2.8vw, 0.74rem);
+      }
+    }
+
+    @media (max-width: 380px) {
+      .top-launch-badge {
+        display: none;
       }
     }
 
@@ -1135,10 +1141,10 @@
       background: rgba(3, 10, 9, 0.9);
       border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: var(--radius-md);
-      padding: 26px;
+      padding: 28px 24px;
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 20px;
+      gap: 32px;
       text-align: center;
     }
 
@@ -1146,6 +1152,8 @@
       font-size: 0.8rem;
       font-weight: 700;
       text-transform: uppercase;
+      margin-bottom: 2px;
+      line-height: 1.1;
     }
 
     .calc-stat-val-white {
@@ -1153,16 +1161,18 @@
       font-size: 1.6rem;
       font-weight: 800;
       color: #FFFFFF;
-      margin-top: 4px;
+      margin-top: 0;
+      line-height: 1.1;
       white-space: nowrap;
     }
 
     .calc-stat-val-mint {
       font-family: var(--font-display);
-      font-size: clamp(2.5rem, 2.5vw, 2.4rem);
+      font-size: clamp(2.4rem, 2.5vw, 2.7rem);
       font-weight: 900;
       color: var(--brand-mint-neon);
-      margin-top: 2px;
+      margin-top: 0;
+      line-height: 1.05;
       white-space: nowrap;
     }
 
@@ -1171,7 +1181,8 @@
       font-size: 1.6rem;
       font-weight: 800;
       color: var(--brand-gold-bright);
-      margin-top: 4px;
+      margin-top: 0;
+      line-height: 1.1;
       white-space: nowrap;
     }
 
@@ -2235,7 +2246,7 @@
         padding-bottom: 80px !important;
       }
 
-      /* Botões Globais sem quebra de texto */
+      /* Botões Globais sem transbordamento */
       .btn-pill-mint,
       .btn-gold-action,
       .hero-cta-btn,
@@ -2243,12 +2254,14 @@
       .modal-submit-btn {
         font-size: clamp(0.72rem, 3.2vw, 0.88rem) !important;
         letter-spacing: 0.2px !important;
-        padding: 14px 18px !important;
-        white-space: nowrap !important;
+        padding: 14px 14px !important;
+        white-space: normal !important;
+        line-height: 1.25 !important;
         max-width: 100% !important;
         box-sizing: border-box !important;
         text-align: center !important;
         justify-content: center !important;
+        width: 100% !important;
       }
 
       /* Sticky Dock Bar */
@@ -2419,25 +2432,46 @@
         white-space: nowrap !important;
       }
 
-      /* Seção 4: Vídeo Pitch Micro-CTA Manuscrita (Mobile & Tablet) */
+      /* Seção 4: Vídeo Pitch (Mobile & Tablet) */
+      .video-pitch-frame {
+        max-height: 260px !important;
+      }
+      .video-thumb-img {
+        max-height: 260px !important;
+        object-fit: cover !important;
+        object-position: center 20% !important;
+      }
+      .play-btn-pulse-wrapper {
+        width: 58px !important;
+        height: 58px !important;
+        margin-bottom: 6px !important;
+      }
+      .play-btn-fab {
+        width: 58px !important;
+        height: 58px !important;
+      }
+      .play-btn-fab svg {
+        width: 22px !important;
+        height: 22px !important;
+      }
       .video-handwritten-callout {
         top: auto !important;
-        bottom: 140px !important;
-        left: 30% !important;
+        bottom: 8px !important;
+        left: 50% !important;
         transform: translateX(-50%) rotate(-3deg) !important;
         gap: 6px !important;
         animation: floatCalloutMobile 3.2s ease-in-out infinite !important;
-        background: none !important;
+        background: transparent !important;
         border: none !important;
         box-shadow: none !important;
         padding: 0 !important;
       }
       .handwritten-text-wrap {
-        font-size: clamp(0.95rem, 3.8vw, 1.15rem) !important;
+        font-size: clamp(0.90rem, 3.4vw, 1.10rem) !important;
       }
       .handwritten-arrow-svg {
-        width: 38px !important;
-        height: 24px !important;
+        width: 36px !important;
+        height: 22px !important;
       }
       @keyframes floatCalloutMobile {
         0%, 100% {
@@ -2453,10 +2487,13 @@
         grid-template-columns: 1fr !important;
         gap: 24px !important;
       }
-	  /* Seção 7: Ferramenta gratuita */
-	  .calc-stats-grid {
-		display: block;
-	}
+      /* Seção 7: Calculadora */
+      .calc-stats-grid {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 28px !important;
+        padding: 22px 16px !important;
+      }
 
       /* Seção 8/10: Showcase 3D dos Materiais */
       .showcase-grid {
@@ -2499,6 +2536,7 @@
       .modules-mobile-slider {
         display: flex !important;
         flex-direction: row !important;
+        flex-wrap: nowrap !important;
         overflow-x: auto !important;
         scroll-snap-type: x mandatory !important;
         -webkit-overflow-scrolling: touch !important;
@@ -2513,6 +2551,8 @@
       .modules-mobile-slider > .card-dark-forest {
         flex: 0 0 85vw !important;
         max-width: 320px !important;
+        min-width: 0 !important;
+        flex-shrink: 0 !important;
         scroll-snap-align: center !important;
         margin-bottom: 0 !important;
       }
@@ -2521,6 +2561,7 @@
       .bonus-mobile-slider {
         display: flex !important;
         flex-direction: row !important;
+        flex-wrap: nowrap !important;
         overflow-x: auto !important;
         scroll-snap-type: x mandatory !important;
         -webkit-overflow-scrolling: touch !important;
@@ -2535,6 +2576,8 @@
       .bonus-mobile-slider > .card-dark-forest {
         flex: 0 0 82vw !important;
         max-width: 300px !important;
+        min-width: 0 !important;
+        flex-shrink: 0 !important;
         scroll-snap-align: center !important;
         margin-bottom: 0 !important;
       }
@@ -2543,6 +2586,7 @@
       .testimonials-masonry-grid {
         display: flex !important;
         flex-direction: row !important;
+        flex-wrap: nowrap !important;
         overflow-x: auto !important;
         scroll-snap-type: x mandatory !important;
         -webkit-overflow-scrolling: touch !important;
@@ -2557,6 +2601,8 @@
       .testimonials-masonry-grid > .testimonial-col {
         flex: 0 0 85vw !important;
         max-width: 320px !important;
+        min-width: 0 !important;
+        flex-shrink: 0 !important;
         scroll-snap-align: center !important;
       }
       /* Sliders Drag-to-Scroll apenas no Mobile / Tablet */
