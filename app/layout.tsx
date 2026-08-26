@@ -6,8 +6,11 @@ export const metadata: Metadata = {
   title: "Do Zero ao CVI | Embarpet",
   description: "Apostila digital para profissionais que atuam com transporte internacional pet.",
   icons: {
-    icon: [{ url: "https://www.embarpet.com.br/img/favicon.ico", type: "image/x-icon" }],
-    shortcut: ["https://www.embarpet.com.br/img/favicon.ico"],
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/favicon.ico", type: "image/x-icon" }
+    ],
+    shortcut: ["/favicon.svg"],
   },
 };
 
