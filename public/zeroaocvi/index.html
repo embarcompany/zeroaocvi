@@ -1577,6 +1577,7 @@
        JAVASCRIPT
        ======================================================================== -->
   <script>
+
     /**
      * Alterna linha de FAQ no formato minimalista.
      * @param {HTMLButtonElement} btn - O botão acionador.
@@ -2044,7 +2045,8 @@
     /**
      * Habilita arraste com mouse (Drag-to-Scroll) suave nos sliders horizontais (Apenas Mobile e Tablet).
      */
-        function initSliderDragToScroll() {
+
+    function initSliderDragToScroll() {
       if (window.innerWidth > 1024) return;
       const sliders = document.querySelectorAll('.modules-mobile-slider, .bonus-mobile-slider, .testimonials-masonry-grid');
       sliders.forEach(slider => {
@@ -2078,26 +2080,8 @@
           slider.scrollLeft = scrollLeft - walk;
         }, { passive: true });
       });
-    });
-
-        slider.addEventListener('mouseleave', () => {
-          isDown = false;
-          slider.classList.remove('active-dragging');
-        });
-
-        slider.addEventListener('mousemove', (e) => {
-          if (!isDown) return;
-          e.preventDefault();
-          const x = e.pageX - slider.offsetLeft;
-          const walk = (x - startX) * 1.5;
-          slider.scrollLeft = scrollLeft - walk;
-        });
-      });
     }
 
-    /**
-     * Intercepta botões de compra final para abrir o modal de pré-checkout e agenda scripts não críticos.
-     */
     function initInteractiveFeatures() {
       initSliderDragToScroll();
       
@@ -2117,9 +2101,8 @@
         setTimeout(initInteractiveFeatures, 1500);
       }, { once: true });
     }
-      });
-    });
-  </script>
+  
+</script>
 
 </body>
 </html>
