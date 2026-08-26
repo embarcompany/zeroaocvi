@@ -5094,41 +5094,102 @@
     }
 
     /**
-     * Gatilho de Qualificação de Engajamento para o Exit Intent (Leads Engajados).
+     * Gatilho Unificado de Exit Intent (Desktop + Mobile).
      */
     let isEngagedByTime = false;
     let isEngagedByScroll = false;
     let exitOfferTriggered = false;
 
-    // 1. Engajamento por Tempo (25 segundos)
+    // 1. Engajamento por Tempo (15 segundos)
     setTimeout(() => {
       isEngagedByTime = true;
-    }, 25000);
+    }, 15000);
 
-    // 2. Engajamento por Scroll (> 50% da página)
+    // 2. Engajamento por Scroll (> 40% da página) + Detector de Scroll Rápido no Mobile
+    let lastScrollY = window.scrollY;
+    let lastScrollTime = Date.now();
+
     window.addEventListener('scroll', () => {
+      const currentScrollY = window.scrollY;
+      const now = Date.now();
       const scrollTotal = document.documentElement.scrollHeight - window.innerHeight;
+
       if (scrollTotal > 0) {
-        const scrolledPct = (window.scrollY / scrollTotal) * 100;
-        if (scrolledPct >= 50) {
+        const scrolledPct = (currentScrollY / scrollTotal) * 100;
+        if (scrolledPct >= 40) {
           isEngagedByScroll = true;
         }
-      }
-    }, { passive: true });
 
-    // 3. Disparo Inteligente no mouseleave (apenas para leads engajados)
-    document.addEventListener('mouseleave', (e) => {
-      if (e.clientY <= 15) {
-        const hasSeenExit = sessionStorage.getItem('cvi_exit_offer_seen');
-        const isEngaged = isEngagedByTime || isEngagedByScroll;
-
-        if (!hasSeenExit && isEngaged && !exitOfferTriggered) {
-          exitOfferTriggered = true;
-          sessionStorage.setItem('cvi_exit_offer_seen', 'true');
-          openExitModal();
+        // Gatilho Mobile: Scroll Rápido para Cima (quando já rolou > 40%)
+        if (isEngagedByScroll && window.innerWidth <= 1024 && !exitOfferTriggered) {
+          const deltaY = lastScrollY - currentScrollY;
+          const deltaTime = now - lastScrollTime;
+          // Subida rápida de mais de 120px em menos de 180ms
+          if (deltaY > 120 && deltaTime < 180 && currentScrollY < scrollTotal * 0.45) {
+            triggerExitIntent('mobile_scroll_up');
+          }
         }
       }
+
+      lastScrollY = currentScrollY;
+      lastScrollTime = now;
+    }, { passive: true });
+
+    // 3. Desktop: Disparo no mouseleave (topo da tela)
+    document.addEventListener('mouseleave', (e) => {
+      if (e.clientY <= 15 && window.innerWidth > 1024) {
+        triggerExitIntent('desktop_mouseleave');
+      }
     });
+
+    // 4. Mobile: Intercepção do Botão Voltar (History / Popstate)
+    function armMobileBackTrap() {
+      if (window.innerWidth > 1024) return;
+      try {
+        window.history.pushState({ exitArmed: true }, '', window.location.href);
+      } catch (err) {}
+
+      window.addEventListener('popstate', (e) => {
+        const hasSeenExit = sessionStorage.getItem('cvi_exit_offer_seen');
+        const checkoutModal = document.getElementById('checkoutCaptureModal');
+        const isCheckoutActive = checkoutModal && checkoutModal.classList.contains('active');
+
+        if (!hasSeenExit && !exitOfferTriggered && !isCheckoutActive) {
+          triggerExitIntent('mobile_back_button');
+          try {
+            window.history.pushState(null, '', window.location.href);
+          } catch (err) {}
+        }
+      });
+    }
+
+    // 5. Mobile: Disparo no retorno à aba após inatividade (Visibility Change)
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible' && isEngagedByTime && !exitOfferTriggered) {
+        triggerExitIntent('mobile_visibility_return');
+      }
+    });
+
+    /**
+     * Centralizador de disparo do Exit Intent com trava anti-duplicação e sessionStorage.
+     */
+    function triggerExitIntent(source) {
+      if (exitOfferTriggered) return;
+      const hasSeenExit = sessionStorage.getItem('cvi_exit_offer_seen');
+      if (hasSeenExit) return;
+
+      const checkoutModal = document.getElementById('checkoutCaptureModal');
+      if (checkoutModal && checkoutModal.classList.contains('active')) return;
+
+      exitOfferTriggered = true;
+      try {
+        sessionStorage.setItem('cvi_exit_offer_seen', 'true');
+      } catch (err) {}
+      openExitModal();
+    }
+
+    // Armar o gatilho de histórico mobile após 6 segundos de permanência
+    setTimeout(armMobileBackTrap, 6000);
 
     /**
      * Habilita arraste com mouse (Drag-to-Scroll) suave nos sliders horizontais (Mobile e Tablet).
