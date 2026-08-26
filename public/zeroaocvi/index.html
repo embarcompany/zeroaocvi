@@ -25,7 +25,8 @@
   <link rel="dns-prefetch" href="https://fonts.gstatic.com">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,700&family=Inter:wght@300;400;500;600;700;800&family=Caveat:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,700&family=Inter:wght@300;400;500;600;700;800&family=Caveat:wght@600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,700&family=Inter:wght@300;400;500;600;700;800&family=Caveat:wght@600;700&display=swap"></noscript>
 
   <!-- Favicon Pata Verde -->
   <link rel="icon" type="image/svg+xml" href="assets/favicon-pata.svg">
@@ -332,7 +333,9 @@
     .section-hero-pad {
       padding-top: 35px;
       padding-bottom: 65px;
+      position: relative;
       overflow: hidden;
+      contain: paint;
     }
 
     .section-video-pad {
@@ -372,7 +375,7 @@
       font-size: 1.05rem;
     }
 
-    /* Ambient Atmosphere */
+    /* Ambient Atmosphere (Zero CLS Isolation) */
     .ambient-glow {
       position: absolute;
       border-radius: 50%;
@@ -381,6 +384,8 @@
       z-index: 1;
       opacity: 0.6;
       mix-blend-mode: screen;
+      contain: strict;
+      will-change: transform;
     }
     .glow-mint {
       background: radial-gradient(
@@ -432,20 +437,44 @@
 
     .btn-pill-mint:active { transform: translateY(0) scale(0.99); }
 
+    /* GPU-Composited Pulse Animation (Zero CPU Repaint) */
+    .btn-pulse-mint {
+      position: relative;
+      animation: pulseSubtleMint 2.4s ease-in-out infinite;
+      will-change: transform;
+    }
+
+    .btn-pulse-mint::after {
+      content: '';
+      position: absolute;
+      inset: -4px;
+      border-radius: var(--radius-pill);
+      background: radial-gradient(circle, rgba(0, 229, 153, 0.45) 0%, rgba(0, 229, 153, 0) 75%);
+      opacity: 0;
+      pointer-events: none;
+      z-index: -1;
+      animation: pulseAuraMint 2.4s ease-in-out infinite;
+      will-change: transform, opacity;
+    }
 
     @keyframes pulseSubtleMint {
       0%, 100% {
         transform: scale(1);
-        box-shadow: 0 8px 30px var(--brand-mint-glow);
       }
       50% {
         transform: scale(1.028);
-        box-shadow: 0 14px 40px rgba(0, 229, 153, 0.65), 0 0 25px rgba(0, 229, 153, 0.4);
       }
     }
 
-    .btn-pulse-mint {
-      animation: pulseSubtleMint 2.4s ease-in-out infinite;
+    @keyframes pulseAuraMint {
+      0%, 100% {
+        transform: scale(0.95);
+        opacity: 0;
+      }
+      50% {
+        transform: scale(1.1);
+        opacity: 0.85;
+      }
     }
 
     .btn-pulse-mint:hover {
@@ -1141,7 +1170,7 @@
       display: flex;
       justify-content: space-between;
       font-size: 0.85rem;
-      color: #64748B;
+      color: #94A3B8;
       margin-top: 10px;
       font-weight: 600;
     }
@@ -1197,7 +1226,7 @@
 
     .calc-disclaimer {
       font-size: 0.82rem;
-      color: #64748B;
+      color: #94A3B8;
       text-align: center;
       margin-top: 20px;
       margin-bottom: 0;
@@ -2089,7 +2118,7 @@
       border-top: 1px solid rgba(255, 255, 255, 0.08);
       padding: 50px 0 150px 0;
       font-size: 0.85rem;
-      color: #64748B;
+      color: #94A3B8;
       text-align: center;
     }
 
@@ -2105,6 +2134,7 @@
       max-width: 700px;
       margin: 0 auto 20px auto;
       line-height: 1.6;
+      color: #CBD5E1;
     }
 
     .video-iframe-16-9 {
@@ -3309,7 +3339,7 @@
   <!-- ========================================================================
        1. TOP LAUNCH BAR
        ======================================================================== -->
-  <div class="top-launch-bar">
+  <header class="top-launch-bar">
     <div class="container-custom top-launch-container">
       <span class="badge-forest-pill top-launch-badge">
         <span class="top-launch-dot"></span>
@@ -3317,13 +3347,14 @@
       </span>
       <span class="top-launch-desc-desktop">🔥 <strong>87% das vagas preenchidas</strong> &bull; R$ 798 OFF + Bônus do Grupo VIP</span>
       <span class="top-launch-desc-mobile">🔥 <strong>87% preenchido</strong> &bull; R$ 798 OFF</span>
-      <a href="#oferta" class="top-launch-link">Garantir Vaga &rarr;</a>
+      <a href="#oferta" class="top-launch-link" aria-label="Garantir vaga com desconto na turma 2026">Garantir Vaga &rarr;</a>
     </div>
-  </div>
+  </header>
 
   <!-- ========================================================================
        2. HERO SECTION CINEMÁTICA
        ======================================================================== -->
+  <main id="main-content">
   <section class="section-forest-a section-hero-pad">
     <div class="ambient-glow glow-mint hero-glow"></div>
     <div class="container-custom">
@@ -3336,7 +3367,7 @@
             <div class="brand-logo-sub">Formação de Consultores Veterinários Internacionais</div>
           </div>
         </div>
-        <a href="#oferta" class="btn-pill-mint" id="heroHeaderBtn">Garantir Vaga</a>
+        <a href="#oferta" class="btn-pill-mint" id="heroHeaderBtn" aria-label="Garantir vaga na Masterclass">Garantir Vaga</a>
       </div>
 
       <!-- Hero 2-Column Grid -->
@@ -3355,7 +3386,7 @@
           </p>
 
           <div class="mb-24">
-            <a href="#oferta" class="btn-pill-mint hero-cta-btn">
+            <a href="#oferta" class="btn-pill-mint hero-cta-btn" aria-label="Garantir minha vaga na formação com desconto">
               <span>QUERO GARANTIR MINHA VAGA COM DESCONTO</span>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
             </a>
@@ -3538,7 +3569,7 @@
 
       <!-- CTA Button Below Video -->
       <div class="text-center mt-50">
-        <a href="#oferta" class="btn-pill-mint">
+        <a href="#oferta" class="btn-pill-mint" aria-label="Quero garantir minha vaga com desconto">
           <span>QUERO GARANTIR MINHA VAGA COM DESCONTO</span>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
         </a>
@@ -3706,7 +3737,7 @@
         <p class="relief-text">
           A faculdade não ensina os trâmites do MAPA nem as normas da IATA. Com um método validado passo a passo, você emite CVIs com segurança absoluta e sem medo.
         </p>
-        <a href="#oferta" class="btn-pill-mint btn-pulse-mint">QUERO ELIMINAR MINHA INSEGURANÇA AGORA &rarr;</a>
+        <a href="#oferta" class="btn-pill-mint btn-pulse-mint" aria-label="Quero eliminar minha insegurança agora e garantir minha vaga">QUERO ELIMINAR MINHA INSEGURANÇA AGORA &rarr;</a>
       </div>
 
     </div>
@@ -4005,7 +4036,7 @@
       </div>
 
       <div class="text-center">
-        <a href="#oferta" class="btn-pill-mint">GARANTIR MEU ACESSO À GRADE COMPLETA</a>
+        <a href="#oferta" class="btn-pill-mint" aria-label="Garantir meu acesso à grade completa do curso">GARANTIR MEU ACESSO À GRADE COMPLETA</a>
       </div>
 
     </div>
@@ -4201,7 +4232,7 @@
       </div>
 
       <div class="text-center">
-        <a href="#oferta" class="btn-pill-mint">QUERO TER ESSES RESULTADOS</a>
+        <a href="#oferta" class="btn-pill-mint" aria-label="Quero ter esses resultados e garantir minha vaga">QUERO TER ESSES RESULTADOS</a>
       </div>
 
     </div>
@@ -4243,7 +4274,7 @@
             </div>
           </div>
 
-          <a href="#oferta" class="btn-pill-mint">QUERO APRENDER COM QUEM É REFERÊNCIA &rarr;</a>
+          <a href="#oferta" class="btn-pill-mint" aria-label="Quero aprender com quem é referência no mercado">QUERO APRENDER COM QUEM É REFERÊNCIA &rarr;</a>
         </div>
 
         <!-- Right: Instructor Card -->
@@ -4303,7 +4334,7 @@
 
         <!-- CTA Button -->
         <div class="mb-20">
-          <a href="https://pay.hotmart.com" target="_blank" rel="noopener noreferrer" class="btn-pill-mint pricing-cta-btn">
+          <a href="https://pay.hotmart.com" target="_blank" rel="noopener noreferrer" class="btn-pill-mint pricing-cta-btn" aria-label="Quero me matricular agora na Masterclass Do Zero ao CVI">
             <span>QUERO ME MATRICULAR AGORA</span>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
           </a>
@@ -4328,7 +4359,7 @@
               <span class="badge-forest-pill upgrade-tag-pill">UPGRADE 01</span>
               <span class="upgrade-price-val">+ R$ 799,00</span>
             </div>
-            <h4 class="upgrade-title">Mentoria para 1ª Emissão de CVI</h4>
+            <h3 class="upgrade-title">Mentoria para 1ª Emissão de CVI</h3>
             <p class="upgrade-desc">
               Acompanhamento individual passo a passo na sua primeira emissão real no sistema do MAPA.
             </p>
@@ -4339,7 +4370,7 @@
               <span class="badge-forest-pill upgrade-tag-pill">UPGRADE 02</span>
               <span class="upgrade-price-val">+ R$ 799,00</span>
             </div>
-            <h4 class="upgrade-title">Imersão Avançada EUA (CDC 2026)</h4>
+            <h3 class="upgrade-title">Imersão Avançada EUA (CDC 2026)</h3>
             <p class="upgrade-desc">
               Treinamento aprofundado para os EUA: fluxo de Facilities credenciadas e formulários CPVM.
             </p>
@@ -4410,7 +4441,7 @@
             <p class="final-cta-desc">
               Aprenda a planejar viagens pet para qualquer país do mundo e emita CVIs com total segurança técnica e alta rentabilidade.
             </p>
-            <a href="#oferta" class="btn-pill-mint final-cta-btn">
+            <a href="#oferta" class="btn-pill-mint final-cta-btn" aria-label="Quero me matricular agora na formação">
               QUERO ME MATRICULAR AGORA &rarr;
             </a>
           </div>
@@ -4587,6 +4618,8 @@
     </div>
   </section>
 
+  </main>
+
   <!-- ========================================================================
        18. FOOTER COM SELOS DE SEGURANÇA
        ======================================================================== -->
@@ -4741,7 +4774,7 @@
       </div>
 
       <!-- Right: Action Button -->
-      <a href="#oferta" class="btn-pill-mint sticky-dock-btn">
+      <a href="#oferta" class="btn-pill-mint sticky-dock-btn" aria-label="Garantir vaga com desconto na barra inferior">
         <span>Garantir Vaga</span>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
       </a>
@@ -5218,9 +5251,11 @@
     setTimeout(armMobileBackTrap, 6000);
 
     /**
-     * Habilita arraste com mouse (Drag-to-Scroll) suave nos sliders horizontais (Mobile e Tablet).
+     * Habilita arraste com mouse (Drag-to-Scroll) suave nos sliders horizontais (Apenas Mobile e Tablet).
      */
     function initSliderDragToScroll() {
+      // Abortar imediatamente no desktop (evita reflow forçado e zera o TBT)
+      if (window.innerWidth > 1024) return;
       const sliders = document.querySelectorAll('.modules-mobile-slider, .bonus-mobile-slider, .testimonials-masonry-grid');
       sliders.forEach(slider => {
         let isDown = false;
@@ -5228,8 +5263,7 @@
         let scrollLeft = 0;
 
         slider.addEventListener('mousedown', (e) => {
-          // Ativa apenas quando houver transbordamento de rolagem horizontal (telas <= 1024px)
-          if (window.innerWidth > 1024 || slider.scrollWidth <= slider.clientWidth) return;
+          if (slider.scrollWidth <= slider.clientWidth) return;
           isDown = true;
           slider.classList.add('active-dragging');
           startX = e.pageX - slider.offsetLeft;
@@ -5259,10 +5293,14 @@
     }
 
     /**
-     * Intercepta botões de compra final para abrir o modal de pré-checkout.
+     * Intercepta botões de compra final para abrir o modal de pré-checkout e agenda scripts não críticos.
      */
     document.addEventListener('DOMContentLoaded', () => {
-      initSliderDragToScroll();
+      if ('requestIdleCallback' in window) {
+        requestIdleCallback(() => initSliderDragToScroll());
+      } else {
+        setTimeout(initSliderDragToScroll, 300);
+      }
 
       const checkoutButtons = document.querySelectorAll('.pricing-cta-btn, a[href="https://pay.hotmart.com"]');
       checkoutButtons.forEach(btn => {
