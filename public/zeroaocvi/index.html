@@ -2259,17 +2259,17 @@
     }
 
     /**
-     * Gatilho Unificado de Exit Intent Altamente Seletivo (Proteção de Margem & CRO).
-     * Requisitos estritos: >= 40s de permanência, >= 65% de scroll (viu o preço original) e gesto claro de saída.
+     * Gatilho Unificado de Exit Intent Calibrado & Responsivo (Proteção de Margem & Alta Precisão).
+     * Requisitos: Engajamento com a oferta/conteúdo e intenção evidente de abandono.
      */
     let isEngagedByTime = false;
     let isEngagedByScroll = false;
     let exitOfferTriggered = false;
 
-    // 1. Engajamento por Tempo: 40 segundos
+    // 1. Engajamento por Tempo: 12 segundos (ou 8s se alcançar o preço)
     setTimeout(() => {
       isEngagedByTime = true;
-    }, 40000);
+    }, 12000);
 
     // 2. Carregamento sob demanda da fonte decorativa Caveat (Zero impacto no LCP / Critical Path)
     function loadCaveatFont() {
@@ -2292,10 +2292,21 @@
       window.addEventListener('scroll', loadCaveatFont, { once: true, passive: true });
     }
 
-    // 3. Engajamento por Scroll com Zero Reflow e Proteção contra Cliques
+    // 3. Detecção de visualização da Seção de Oferta (#oferta) via IntersectionObserver
+    const pricingSectionEl = document.getElementById('oferta');
+    if (pricingSectionEl && 'IntersectionObserver' in window) {
+      const exitPricingObserver = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting) {
+          isEngagedByScroll = true;
+          setTimeout(() => { isEngagedByTime = true; }, 8000);
+          exitPricingObserver.disconnect();
+        }
+      }, { threshold: 0.15 });
+      exitPricingObserver.observe(pricingSectionEl);
+    }
+
+    // 4. Engajamento por Scroll dinâmico com proteção contra cliques
     let scrollScheduled = false;
-    let docScrollHeight = 0;
-    let winHeight = 0;
     let isProgrammaticScroll = false;
     let programmaticScrollTimer = null;
 
@@ -2311,19 +2322,6 @@
       anchor.addEventListener('click', suppressExitIntentOnNav, { passive: true });
     });
 
-    function updateScrollMetrics() {
-      docScrollHeight = document.documentElement.scrollHeight;
-      winHeight = window.innerHeight;
-    }
-
-    if ('requestIdleCallback' in window) {
-      requestIdleCallback(updateScrollMetrics);
-    } else {
-      setTimeout(updateScrollMetrics, 400);
-    }
-
-    window.addEventListener('resize', updateScrollMetrics, { passive: true });
-
     let lastScrollY = window.scrollY;
     let lastScrollTime = Date.now();
 
@@ -2332,24 +2330,25 @@
         scrollScheduled = true;
         requestAnimationFrame(() => {
           scrollScheduled = false;
-          if (!docScrollHeight) updateScrollMetrics();
           const currentScrollY = window.scrollY;
           const now = Date.now();
-          const scrollTotal = docScrollHeight - winHeight;
+          const docHeight = document.documentElement.scrollHeight;
+          const winH = window.innerHeight;
+          const scrollTotal = docHeight - winH;
 
           if (scrollTotal > 0) {
             const scrolledPct = (currentScrollY / scrollTotal) * 100;
-            // Só qualifica para desconto quem já viu a oferta (>= 65% de scroll)
-            if (scrolledPct >= 65) {
+            // Qualifica visitante que atingiu >= 45% da página ou mais de 1000px
+            if (scrolledPct >= 45 || currentScrollY >= 1000) {
               isEngagedByScroll = true;
             }
 
-            // Gatilho Mobile: Scroll Rápido e Brusco para Cima (> 280px em < 250ms)
+            // Gatilho Mobile: Scroll Rápido para Cima (> 180px em < 300ms) após engajar
             if (isEngagedByScroll && isEngagedByTime && window.innerWidth <= 1024 && !exitOfferTriggered && !isProgrammaticScroll) {
               const deltaY = lastScrollY - currentScrollY;
               const deltaTime = now - lastScrollTime;
 
-              if (deltaY > 280 && deltaTime < 250) {
+              if (deltaY > 180 && deltaTime < 300 && currentScrollY > 400) {
                 triggerExitIntent('mobile_fast_scroll_exit');
               }
             }
@@ -2361,14 +2360,17 @@
       }
     }, { passive: true });
 
-    // 4. Desktop: Disparo quando o cursor do mouse sai pelo topo da tela (em direção à aba)
-    document.addEventListener('mouseleave', (e) => {
-      if (window.innerWidth > 1024 && e.clientY <= 5 && !e.relatedTarget && isEngagedByTime && isEngagedByScroll) {
+    // 5. Desktop: Disparo na saída do cursor pelo topo da tela (em direção às abas/endereço)
+    function handleDesktopExit(e) {
+      if (window.innerWidth <= 1024) return;
+      if (e.clientY <= 25 && (!e.relatedTarget || !e.toElement) && isEngagedByTime && isEngagedByScroll) {
         triggerExitIntent('desktop_mouse_leave_top');
       }
-    });
+    }
+    document.addEventListener('mouseleave', handleDesktopExit);
+    document.addEventListener('mouseout', handleDesktopExit);
 
-    // 5. Mobile: Intercepção do Botão Voltar (History / Popstate) apenas se engajado
+    // 6. Mobile: Intercepção do Botão Voltar (History / Popstate) apenas se engajado
     function armMobileBackTrap() {
       if (window.innerWidth > 1024) return;
       try {
@@ -2385,29 +2387,39 @@
       });
     }
 
-    // Armar o histórico mobile após 40 segundos de permanência
-    setTimeout(armMobileBackTrap, 40000);
+    // Armar o histórico mobile após 15 segundos de permanência
+    setTimeout(armMobileBackTrap, 15000);
 
     /**
-     * Centralizador de disparo do Exit Intent com trava de 7 dias via localStorage.
+     * Centralizador de disparo do Exit Intent com trava inteligente por sessão (sessionStorage).
      */
     function triggerExitIntent(source) {
       if (exitOfferTriggered) return;
 
-      // Trava de 7 dias para não canibalizar margem de usuários recorrentes
+      // Suporte a depuração imediata com ?debug_exit=1 na URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const isDebug = urlParams.has('debug_exit');
+
+      // Limpa trava legada de 7 dias do localStorage que travava testes anteriores
       try {
-        const lastSeen = localStorage.getItem('cvi_exit_discount_seen');
-        if (lastSeen && (Date.now() - parseInt(lastSeen, 10)) < 7 * 24 * 60 * 60 * 1000) {
-          return;
-        }
+        localStorage.removeItem('cvi_exit_discount_seen');
       } catch (err) {}
+
+      // Limita a 1 exibição por sessão para não canibalizar margem
+      if (!isDebug) {
+        try {
+          if (sessionStorage.getItem('cvi_exit_shown_session')) {
+            return;
+          }
+        } catch (err) {}
+      }
 
       const checkoutModal = document.getElementById('checkoutCaptureModal');
       if (checkoutModal && checkoutModal.classList.contains('active')) return;
 
       exitOfferTriggered = true;
       try {
-        localStorage.setItem('cvi_exit_discount_seen', Date.now().toString());
+        sessionStorage.setItem('cvi_exit_shown_session', 'true');
       } catch (err) {}
       openExitModal();
     }
